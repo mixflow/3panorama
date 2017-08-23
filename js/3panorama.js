@@ -11,7 +11,7 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseControl, camera, container, debugSettings, defaultSettings, init, initRenderer, key, lat, lon, mesh, ref, renderer, scene, update, updateCamera, val;
+    var animate, bindMouseControl, camera, container, debugSettings, defaultSettings, init, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, update, updateCamera, val;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -73,6 +73,7 @@
       renderer = initRenderer();
       container.appendChild(renderer.domElement);
       bindMouseControl(renderer.domElement);
+      window.addEventListener("resize", onWindowResize, false);
       return {
         camera: camera,
         mesh: mesh,
@@ -117,6 +118,11 @@
       target.addEventListener('mousedown', mouseDown, false);
       target.addEventListener('mousemove', mouseMove, false);
       return target.addEventListener('mouseup', mouseUp, false);
+    };
+    onWindowResize = function(event) {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      return renderer.setSize(window.innerWidth, window.innerHeight);
     };
     ref = init(), camera = ref.camera, mesh = ref.mesh, scene = ref.scene, renderer = ref.renderer;
     animate = function() {

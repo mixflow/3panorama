@@ -93,12 +93,13 @@ window.threePanorama = (settings) ->
         # bind mouse event to control the camera
         bindMouseControl(renderer.domElement)
 
+        # resize the camera and renderer when window size changed.
+        window.addEventListener("resize", onWindowResize, false)
+
         return {camera, mesh, scene, renderer}
         # [end] init
 
     # the components initiate functions.
-
-
     initRenderer = ->
         renderer = new THREE.WebGLRenderer()
         renderer.setPixelRatio( window.devicePixelRatio )
@@ -138,6 +139,12 @@ window.threePanorama = (settings) ->
         target.addEventListener 'mousedown', mouseDown, false
         target.addEventListener 'mousemove', mouseMove, false
         target.addEventListener 'mouseup', mouseUp, false
+
+    onWindowResize = (event) ->
+        camera.aspect = window.innerWidth / window.innerHeight
+        camera.updateProjectionMatrix()
+
+        renderer.setSize(window.innerWidth, window.innerHeight)
 
 
     {camera, mesh, scene, renderer} = init()
