@@ -11,7 +11,7 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseControl, camera, container, debugSettings, defaultSettings, init, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, update, updateCamera, val;
+    var animate, bindMouseTouchControl, camera, container, debugSettings, defaultSettings, init, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, update, updateCamera, val;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -72,8 +72,7 @@
       scene.add(mesh);
       renderer = initRenderer();
       container.appendChild(renderer.domElement);
-      bindMouseControl(renderer.domElement);
-      window.addEventListener("resize", onWindowResize, false);
+      bindMouseTouchControl(renderer.domElement);
       return {
         camera: camera,
         mesh: mesh,
@@ -88,36 +87,53 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
       return renderer;
     };
-    bindMouseControl = function(target) {
-      var isUserControling, mouseDown, mouseMove, mouseUp, onMouseDownLat, onMouseDownLon, onMouseDownX, onMouseDownY;
-      onMouseDownX = 0;
-      onMouseDownY = 0;
-      onMouseDownLon = 0;
-      onMouseDownLat = 0;
+    bindMouseTouchControl = function(target) {
+      var controlEnd, controlMoveHelper, controlStartHelper, controlStartLat, controlStartLon, controlStartX, controlStartY, isUserControling, mouseDownHandle, mouseMoveHandle, mouseUpHandle, touchEndHandle, touchMoveHandle, touchStartHandle;
+      controlStartX = 0;
+      controlStartY = 0;
+      controlStartLon = 0;
+      controlStartLat = 0;
       isUserControling = false;
-      mouseDown = function(event) {
-        event.preventDefault();
-        isUserControling = true;
-        onMouseDownX = event.clientX;
-        onMouseDownY = event.clientY;
-        onMouseDownLon = lon;
-        return onMouseDownLat = lat;
+      controlStartHelper = function(isTouch) {
+        return function(event) {
+          event.preventDefault();
+          isUserControling = true;
+          controlStartX = !isTouch ? event.clientX : event.changedTouches[0].clientX;
+          controlStartY = !isTouch ? event.clientY : event.changedTouches[0].clientY;
+          controlStartLon = lon;
+          return controlStartLat = lat;
+        };
       };
-      mouseMove = function(event) {
-        if (isUserControling === true) {
-          lon = (onMouseDownX - event.clientX) * settings.mouseSensitivity + onMouseDownLon;
-          lat = (event.clientY - onMouseDownY) * settings.mouseSensitivity + onMouseDownLat;
-          if (settings.debug.lonlat) {
-            return console.log("longitude: ", lon, "latitude: ", lat);
+      controlMoveHelper = function(isTouch) {
+        return function(event) {
+          var sensitivity, x, y;
+          if (isUserControling === true) {
+            x = !isTouch ? event.clientX : event.changedTouches[0].clientX;
+            y = !isTouch ? event.clientY : event.changedTouches[0].clientY;
+            sensitivity = settings.mouseSensitivity;
+            lon = (controlStartX - x) * sensitivity + controlStartLon;
+            lat = (y - controlStartY) * sensitivity + controlStartLat;
+            if (settings.debug.lonlat) {
+              return console.log("longitude: ", lon, "latitude: ", lat);
+            }
           }
-        }
+        };
       };
-      mouseUp = function(event) {
+      controlEnd = function(event) {
         return isUserControling = false;
       };
-      target.addEventListener('mousedown', mouseDown, false);
-      target.addEventListener('mousemove', mouseMove, false);
-      return target.addEventListener('mouseup', mouseUp, false);
+      mouseDownHandle = controlStartHelper(false);
+      mouseMoveHandle = controlMoveHelper(false);
+      mouseUpHandle = controlEnd;
+      target.addEventListener('mousedown', mouseDownHandle, false);
+      target.addEventListener('mousemove', mouseMoveHandle, false);
+      target.addEventListener('mouseup', mouseUpHandle, false);
+      touchStartHandle = controlStartHelper(true);
+      touchMoveHandle = controlMoveHelper(true);
+      touchEndHandle = controlEnd;
+      target.addEventListener("touchstart", touchStartHandle, false);
+      target.addEventListener("touchmove", touchMoveHandle, false);
+      return target.addEventListener("touchend", touchEndHandle, false);
     };
     onWindowResize = function(event) {
       camera.aspect = window.innerWidth / window.innerHeight;

@@ -91,10 +91,10 @@ window.threePanorama = (settings) ->
         container.appendChild( renderer.domElement )
 
         # bind mouse event to control the camera
-        bindMouseControl(renderer.domElement)
+        bindMouseTouchControl(renderer.domElement)
 
         # resize the camera and renderer when window size changed.
-        window.addEventListener("resize", onWindowResize, false)
+        # window.addEventListener("resize", onWindowResize, false)
 
         return {camera, mesh, scene, renderer}
         # [end] init
@@ -107,38 +107,58 @@ window.threePanorama = (settings) ->
         return renderer
         # [end] init_renderer
 
-    bindMouseControl = (target) ->
+    bindMouseTouchControl = (target) ->
         # the dom target, which the mouse events are trigged on.
-        onMouseDownX = 0
-        onMouseDownY = 0
-        onMouseDownLon = 0
-        onMouseDownLat = 0
+        controlStartX = 0
+        controlStartY = 0
+        controlStartLon = 0
+        controlStartLat = 0
         isUserControling = false
 
-        mouseDown = (event) ->
-            # press down the mouse key.
-            event.preventDefault()
-            isUserControling = true
-            onMouseDownX = event.clientX
-            onMouseDownY = event.clientY
-            onMouseDownLon = lon
-            onMouseDownLat = lat
+        controlStartHelper = (isTouch) ->
+            # Base on `isTouch`, generate touch(true) or mouse(otherwise) version event handler.
+            return (event) ->
+                event.preventDefault()
+                isUserControling = true
+                controlStartX = if not isTouch then event.clientX else event.changedTouches[0].clientX
+                controlStartY = if not isTouch then event.clientY else event.changedTouches[0].clientY
+                controlStartLon = lon
+                controlStartLat = lat
 
-        mouseMove = (event) ->
-            # hold mouse key, and move over.
-            if isUserControling is true
-                lon = (onMouseDownX - event.clientX) * settings.mouseSensitivity + onMouseDownLon
-                lat = (event.clientY - onMouseDownY) * settings.mouseSensitivity + onMouseDownLat
-                if settings.debug.lonlat
-                    console.log "longitude: ", lon, "latitude: ", lat
+        controlMoveHelper = (isTouch) ->
 
-        mouseUp = (event) ->
+            return (event) ->
+                # mouse move over, or touch move over
+                if isUserControling is true
+                    x = if not isTouch then event.clientX else event.changedTouches[0].clientX
+                    y = if not isTouch then event.clientY else event.changedTouches[0].clientY
+                    sensitivity = settings.mouseSensitivity # TODO ? touch sensitivity?
+
+                    lon = (controlStartX - x) * sensitivity + controlStartLon
+                    lat = (y - controlStartY) * sensitivity + controlStartLat
+                    if settings.debug.lonlat
+                        console.log "longitude: ", lon, "latitude: ", lat
+
+        controlEnd = (event) ->
             # release the mouse key.
             isUserControling = false
 
-        target.addEventListener 'mousedown', mouseDown, false
-        target.addEventListener 'mousemove', mouseMove, false
-        target.addEventListener 'mouseup', mouseUp, false
+        mouseDownHandle = controlStartHelper(false)
+        mouseMoveHandle = controlMoveHelper(false)
+        mouseUpHandle = controlEnd
+        # bind mouse event
+        target.addEventListener 'mousedown', mouseDownHandle, false
+        target.addEventListener 'mousemove', mouseMoveHandle, false
+        target.addEventListener 'mouseup', mouseUpHandle, false
+
+        touchStartHandle = controlStartHelper(true)
+        touchMoveHandle = controlMoveHelper(true)
+        touchEndHandle = controlEnd
+        # touch event
+        target.addEventListener "touchstart", touchStartHandle, false
+        target.addEventListener "touchmove", touchMoveHandle, false
+        target.addEventListener "touchend", touchEndHandle, false
+
 
     onWindowResize = (event) ->
         camera.aspect = window.innerWidth / window.innerHeight
