@@ -37,7 +37,8 @@ window.threePanorama = (settings) ->
 
     # set container dom.
     if typeof settings.container is "string"
-        container = document.querySelectorAll(setting.container)
+        # only select first one
+        container = document.querySelectorAll(settings.container)[0]
     else
         container = settings.container
 
