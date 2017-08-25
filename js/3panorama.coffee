@@ -127,6 +127,9 @@ window.threePanorama = (settings) ->
         # bind mouse event to control the camera
         bindMouseTouchControl(renderer.domElement)
 
+        # control bar
+        initControls(container)
+
         # resize the camera and renderer when window size changed.
         window.addEventListener("resize", onWindowResize, false)
 
@@ -192,6 +195,61 @@ window.threePanorama = (settings) ->
         target.addEventListener "touchstart", touchStartHandle, false
         target.addEventListener "touchmove", touchMoveHandle, false
         target.addEventListener "touchend", touchEndHandle, false
+
+    toggleTargetFullscreen = (target) ->
+        if document.fullscreenElement or document.mozRequestFullScreen or document.webkitFullscreenElement or document.msFullscreenElement
+            # fullscreen state. to exit fullscreen
+            if document.exitFullscreen
+                document.exitFullscreen()
+            else if document.msExitFullscreen
+                document.msExitFullscreen();
+            else if document.mozCancelFullScreen
+                document.mozCancelFullScreen()
+            else if document.webkitExitFullscreen
+                document.webkitExitFullscreen()
+            else
+                console.log("The bowser doesn't support fullscreen mode") # Don't support fullscreen
+        else
+            # to enter fullscreen
+            if document.documentElement.requestFullscreen
+                target.requestFullscreen()
+            else if document.documentElement.msRequestFullscreen
+                target.msRequestFullscreen()
+            else if document.documentElement.mozRequestFullScreen
+                target.mozRequestFullScreen()
+            else if document.documentElement.webkitRequestFullscreen
+                target.webkitRequestFullscreen()
+            else
+                console.log("The bowser doesn't support fullscreen mode")
+
+
+    initControls = (container) ->
+        controls = document.createElement("div")
+        controls.className = "3panorama-controls"
+        # postion: above the container
+        controls.style.position = "absolute"
+        controls.style.bottom = 0
+
+        controls.style.width = "100%"
+        controls.style.height = "3.5em"
+        controls.style["min-height"] = "32px"
+
+        fullscreen = document.createElement("img")
+        fullscreen.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzMjAgMzIwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CjxnIGlkPSJYTUxJRF8xMDVfIj4KCTxnPgoJCTxnPgoJCQk8cG9seWdvbiBwb2ludHM9IjEyNS4wMDcsMTgwLjg0OSAyMCwyODUuODU3IDIwLDIwMy40MDEgMCwyMDMuNDAxIDAsMzIwIDExNi41OTksMzIwIDExNi41OTksMzAwIDM0LjE0MiwzMDAgMTM5LjE1LDE5NC45OTIgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMDMuNDAxLDAgMjAzLjQwMSwyMCAyODUuODU1LDIwIDE4MC44NSwxMjUuMDA1IDE5NC45OTMsMTM5LjE0OCAzMDAsMzQuMTQgMzAwLDExNi41OTkgMzIwLDExNi41OTkgMzIwLDAgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMCwzNC4xNDIgMTI1LjAwNiwxMzkuMTQ4IDEzOS4xNDksMTI1LjAwNiAzNC4xNDMsMjAgMTE2LjU5OSwyMCAxMTYuNTk5LDAgMCwwIDAsMTE2LjU5OSAyMCwxMTYuNTk5ICAgICIgZmlsbD0iI0ZGRkZGRiIvPgoJCQk8cG9seWdvbiBwb2ludHM9IjMwMCwyODUuODU1IDE5NC45OTQsMTgwLjg0OSAxODAuODUxLDE5NC45OTEgMjg1Ljg2LDMwMCAyMDMuNDAxLDMwMCAyMDMuNDAxLDMyMCAzMjAsMzIwIDMyMCwyMDMuNDAxICAgICAgMzAwLDIwMy40MDEgICAgIiBmaWxsPSIjRkZGRkZGIi8+CgkJPC9nPgoJPC9nPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo="
+        fullscreen.style.margin = "0.3em"
+        fullscreen.style.height = "75%"
+        fullscreen.style["min-height"] = "24px"
+
+        fullscreen.addEventListener("click",
+            ->
+                toggleTargetFullscreen(container)
+            , false)
+
+
+
+        controls.appendChild(fullscreen)
+
+        container.appendChild(controls)
 
 
     onWindowResize = (event) ->
