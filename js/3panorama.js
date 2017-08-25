@@ -11,7 +11,7 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, container, debugSettings, defaultSettings, getViewerSize, height, init, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, update, updateCamera, val, width;
+    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, toggleTargetFullscreen, update, updateCamera, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -107,6 +107,7 @@
       renderer = initRenderer();
       container.appendChild(renderer.domElement);
       bindMouseTouchControl(renderer.domElement);
+      initControls(container);
       window.addEventListener("resize", onWindowResize, false);
       return {
         camera: camera,
@@ -169,6 +170,83 @@
       target.addEventListener("touchstart", touchStartHandle, false);
       target.addEventListener("touchmove", touchMoveHandle, false);
       return target.addEventListener("touchend", touchEndHandle, false);
+    };
+    toggleTargetFullscreen = function(target) {
+      if (document.fullscreenElement || document.mozRequestFullScreen || document.webkitFullscreenElement || document.msFullscreenElement) {
+        if (document.exitFullscreen) {
+          return document.exitFullscreen();
+        } else if (document.msExitFullscreen) {
+          return document.msExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          return document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+          return document.webkitExitFullscreen();
+        } else {
+          return console.log("The bowser doesn't support fullscreen mode");
+        }
+      } else {
+        if (document.documentElement.requestFullscreen) {
+          return target.requestFullscreen();
+        } else if (document.documentElement.msRequestFullscreen) {
+          return target.msRequestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+          return target.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullscreen) {
+          return target.webkitRequestFullscreen();
+        } else {
+          return console.log("The bowser doesn't support fullscreen mode");
+        }
+      }
+    };
+    changeFullscreenState = function(target) {
+      var clazz, fullscreenElement;
+      fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+      clazz = "fullscreen-mode";
+      if ((fullscreenElement != null)) {
+        target.className += " " + clazz;
+        target.style.width = "100vw";
+        target.style.height = "100vh";
+        target.style["max-width"] = "unset";
+        return target.style["max-height"] = "unset";
+      } else {
+        target.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
+        target.style.width = null;
+        target.style.height = null;
+        target.style["max-width"] = null;
+        return target.style["max-height"] = null;
+      }
+    };
+    initControls = function(container) {
+      var controls, fullscreen;
+      controls = document.createElement("div");
+      controls.className = "3panorama-controls";
+      controls.style.position = "absolute";
+      controls.style.bottom = 0;
+      controls.style.width = "100%";
+      controls.style.height = "3.5em";
+      controls.style["min-height"] = "32px";
+      fullscreen = document.createElement("img");
+      fullscreen.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzMjAgMzIwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CjxnIGlkPSJYTUxJRF8xMDVfIj4KCTxnPgoJCTxnPgoJCQk8cG9seWdvbiBwb2ludHM9IjEyNS4wMDcsMTgwLjg0OSAyMCwyODUuODU3IDIwLDIwMy40MDEgMCwyMDMuNDAxIDAsMzIwIDExNi41OTksMzIwIDExNi41OTksMzAwIDM0LjE0MiwzMDAgMTM5LjE1LDE5NC45OTIgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMDMuNDAxLDAgMjAzLjQwMSwyMCAyODUuODU1LDIwIDE4MC44NSwxMjUuMDA1IDE5NC45OTMsMTM5LjE0OCAzMDAsMzQuMTQgMzAwLDExNi41OTkgMzIwLDExNi41OTkgMzIwLDAgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMCwzNC4xNDIgMTI1LjAwNiwxMzkuMTQ4IDEzOS4xNDksMTI1LjAwNiAzNC4xNDMsMjAgMTE2LjU5OSwyMCAxMTYuNTk5LDAgMCwwIDAsMTE2LjU5OSAyMCwxMTYuNTk5ICAgICIgZmlsbD0iI0ZGRkZGRiIvPgoJCQk8cG9seWdvbiBwb2ludHM9IjMwMCwyODUuODU1IDE5NC45OTQsMTgwLjg0OSAxODAuODUxLDE5NC45OTEgMjg1Ljg2LDMwMCAyMDMuNDAxLDMwMCAyMDMuNDAxLDMyMCAzMjAsMzIwIDMyMCwyMDMuNDAxICAgICAgMzAwLDIwMy40MDEgICAgIiBmaWxsPSIjRkZGRkZGIi8+CgkJPC9nPgoJPC9nPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=";
+      fullscreen.style.margin = "0.3em";
+      fullscreen.style.height = "75%";
+      fullscreen.style["min-height"] = "24px";
+      fullscreen.addEventListener("click", function() {
+        return toggleTargetFullscreen(container);
+      }, false);
+      document.addEventListener("webkitfullscreenchange", function() {
+        return changeFullscreenState(container);
+      }, false);
+      document.addEventListener("mozfullscreenchange ", function() {
+        return changeFullscreenState(container);
+      }, false);
+      document.addEventListener("msfullscreenchange ", function() {
+        return changeFullscreenState(container);
+      }, false);
+      document.addEventListener("fullscreenchange ", function() {
+        return changeFullscreenState(container);
+      }, false);
+      controls.appendChild(fullscreen);
+      return container.appendChild(controls);
     };
     onWindowResize = function(event) {
       getViewerSize();
