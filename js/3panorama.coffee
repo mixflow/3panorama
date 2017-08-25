@@ -222,6 +222,32 @@ window.threePanorama = (settings) ->
             else
                 console.log("The bowser doesn't support fullscreen mode")
 
+    changeFullscreenState = (target) ->
+        # TODO [important] make a wrapper for styling??
+        fullscreenElement = document.fullscreenElement ||
+            document.mozFullScreenElement ||
+            document.webkitFullscreenElement ||
+            document.msFullscreenElement
+
+        clazz = "fullscreen-mode"
+
+        if (fullscreenElement?) # fullscreen
+            target.className += " " + clazz
+
+            target.style.width = "100vw"
+            target.style.height = "100vh"
+            target.style["max-width"] = "unset"
+            target.style["max-height"] = "unset"
+        else
+            # remove class name
+            # TODO clean up. make a helper to handle class name.
+            target.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
+
+            target.style.width = null
+            target.style.height = null
+            target.style["max-width"] = null
+            target.style["max-height"] = null
+
 
     initControls = (container) ->
         controls = document.createElement("div")
@@ -245,7 +271,19 @@ window.threePanorama = (settings) ->
                 toggleTargetFullscreen(container)
             , false)
 
-
+        # TODO CLEAN UP
+        document.addEventListener("webkitfullscreenchange", ->
+                changeFullscreenState(container)
+            , false)
+        document.addEventListener("mozfullscreenchange ", ->
+                changeFullscreenState(container)
+            , false)
+        document.addEventListener("msfullscreenchange ", ->
+                changeFullscreenState(container)
+            , false)
+        document.addEventListener("fullscreenchange ", ->
+                changeFullscreenState(container)
+            , false)
 
         controls.appendChild(fullscreen)
 
