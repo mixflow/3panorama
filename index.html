@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title>3panorama</title>
+        <meta name="viewport" content="width=device-width initial-scale=1 maximum-scale=1">
         <script src="js/three.min.js" charset="utf-8"></script>
         <script src="js/3panorama.js" charset="utf-8"></script>
         <script src="js/threejs/controls/DeviceOrientationControl.js" charset="utf-8"></script>
@@ -15,8 +16,9 @@
             }
         </style>
         <script type="text/javascript">
+            var panorama;
             document.addEventListener("DOMContentLoaded", function(event){
-                var panorama = threePanorama({
+                panorama = threePanorama({
                     // container: "#the-body",
                     useWindowSize: false,
                     image: "images/Forest-Day_Left.jpg"
