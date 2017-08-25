@@ -13,6 +13,12 @@ window.threePanorama = (settings) ->
         container: document.body
         image: undefined
         fov: 65  # camera fov(field of view)
+        useWindowSize: false # If set false(defalut), Camera ratio and render size (Viewer size) are base on container size(fill). If set true, use window innerWidth and innerHeight.
+        ###
+            If width or height is missing(0), use this alternate ratio to calculate the missing size.
+            If you want set specific ratio, please set your container size(width / height = ratio) and `useWindowSize` is false
+        ###
+        alternateRatio: 16/9
         enableDragNewImage: true  # can drag image file which will be show as the new panorama to viewer(container)
         mouseSensitivity: 0.1 # the sensitivity of mouse when is drag to control the camera.
         lonlat: [0, 0] # the initialize position that camera look at.
@@ -45,6 +51,33 @@ window.threePanorama = (settings) ->
     # the longitude and latitude position which are mapped to the sphere
     lon = settings.lonlat[0]
     lat = settings.lonlat[1]
+    width = 0
+    height = 0
+
+    #  size of render
+    getViewerSize = ->
+        if not settings.useWindowSize
+            rect = container.getBoundingClientRect()
+            width = rect.width
+            height = rect.height
+        else
+            width = window.innerWidth
+
+        if not width and not height
+            throw {
+                type: "Lack of Viewer Size.",
+                msg: "Viewer width and height are both missing(value is 0), Please check the container size(width and height > 0).
+                    Or use window size to set Viewer size by setting `useWindowSize` as `true`"
+            }
+        else if not height
+            height = width / settings.alternateRatio
+        else if not width # height is not zero
+            width = height * settings.alternateRatio
+
+        return {width, height}
+
+    # get init size
+    getViewerSize()
 
     ###
     # Initiate the three.js components.
@@ -58,7 +91,7 @@ window.threePanorama = (settings) ->
     init = ->
         # noraml camera (Perspective). (fov, camera screen ratio(width / height), near clip distance, far clip dist)
         # TODO ? take 'ratio' param from setting?
-        camera = new THREE.PerspectiveCamera(settings.fov, window.innerWidth / window.innerHeight, 1, 1100 )
+        camera = new THREE.PerspectiveCamera(settings.fov, width / height, 1, 1100 )
         # the camera lookAt target whose position in 3D space for the camera to point towards
         # TODO the init camera target position
         # camera.lookAt(new THREE.Vector3(0, 0, 0))
@@ -95,7 +128,7 @@ window.threePanorama = (settings) ->
         bindMouseTouchControl(renderer.domElement)
 
         # resize the camera and renderer when window size changed.
-        # window.addEventListener("resize", onWindowResize, false)
+        window.addEventListener("resize", onWindowResize, false)
 
         return {camera, mesh, scene, renderer}
         # [end] init
@@ -104,7 +137,7 @@ window.threePanorama = (settings) ->
     initRenderer = ->
         renderer = new THREE.WebGLRenderer()
         renderer.setPixelRatio( window.devicePixelRatio )
-        renderer.setSize( window.innerWidth, window.innerHeight)
+        renderer.setSize(width, height)
         return renderer
         # [end] init_renderer
 
@@ -162,10 +195,11 @@ window.threePanorama = (settings) ->
 
 
     onWindowResize = (event) ->
-        camera.aspect = window.innerWidth / window.innerHeight
+        getViewerSize()
+        camera.aspect = width / height
         camera.updateProjectionMatrix()
 
-        renderer.setSize(window.innerWidth, window.innerHeight)
+        renderer.setSize(width, height)
 
 
     {camera, mesh, scene, renderer} = init()

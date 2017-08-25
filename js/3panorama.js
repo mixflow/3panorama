@@ -11,11 +11,18 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, container, debugSettings, defaultSettings, init, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, update, updateCamera, val;
+    var animate, bindMouseTouchControl, camera, container, debugSettings, defaultSettings, getViewerSize, height, init, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, update, updateCamera, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
       fov: 65,
+      useWindowSize: false,
+
+      /*
+          If width or height is missing(0), use this alternate ratio to calculate the missing size.
+          If you want set specific ratio, please set your container size(width / height = ratio) and `useWindowSize` is false
+       */
+      alternateRatio: 16 / 9,
       enableDragNewImage: true,
       mouseSensitivity: 0.1,
       lonlat: [0, 0],
@@ -41,12 +48,39 @@
       };
     }
     if (typeof settings.container === "string") {
-      container = document.querySelectorAll(setting.container);
+      container = document.querySelectorAll(settings.container)[0];
     } else {
       container = settings.container;
     }
     lon = settings.lonlat[0];
     lat = settings.lonlat[1];
+    width = 0;
+    height = 0;
+    getViewerSize = function() {
+      var rect;
+      if (!settings.useWindowSize) {
+        rect = container.getBoundingClientRect();
+        width = rect.width;
+        height = rect.height;
+      } else {
+        width = window.innerWidth;
+      }
+      if (!width && !height) {
+        throw {
+          type: "Lack of Viewer Size.",
+          msg: "Viewer width and height are both missing(value is 0), Please check the container size(width and height > 0). Or use window size to set Viewer size by setting `useWindowSize` as `true`"
+        };
+      } else if (!height) {
+        height = width / settings.alternateRatio;
+      } else if (!width) {
+        width = height * settings.alternateRatio;
+      }
+      return {
+        width: width,
+        height: height
+      };
+    };
+    getViewerSize();
 
     /*
      * Initiate the three.js components.
@@ -59,7 +93,7 @@
      */
     init = function() {
       var camera, geometry, material, mesh, renderer, scene, texture;
-      camera = new THREE.PerspectiveCamera(settings.fov, window.innerWidth / window.innerHeight, 1, 1100);
+      camera = new THREE.PerspectiveCamera(settings.fov, width / height, 1, 1100);
       camera.target = new THREE.Vector3(0, 0, 0);
       geometry = new THREE.SphereBufferGeometry(settings.sphere.radius, 50, 50);
       geometry.scale(-1, 1, 1);
@@ -73,6 +107,7 @@
       renderer = initRenderer();
       container.appendChild(renderer.domElement);
       bindMouseTouchControl(renderer.domElement);
+      window.addEventListener("resize", onWindowResize, false);
       return {
         camera: camera,
         mesh: mesh,
@@ -84,7 +119,7 @@
       var renderer;
       renderer = new THREE.WebGLRenderer();
       renderer.setPixelRatio(window.devicePixelRatio);
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
       return renderer;
     };
     bindMouseTouchControl = function(target) {
@@ -136,9 +171,10 @@
       return target.addEventListener("touchend", touchEndHandle, false);
     };
     onWindowResize = function(event) {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      getViewerSize();
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      return renderer.setSize(window.innerWidth, window.innerHeight);
+      return renderer.setSize(width, height);
     };
     ref = init(), camera = ref.camera, mesh = ref.mesh, scene = ref.scene, renderer = ref.renderer;
     animate = function() {
