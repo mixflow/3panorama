@@ -10,16 +10,19 @@
         <style>
             body{
                 margin: 0;
+            }
+
+            #container{
+                position: relative;
                 width: 100vw;
-                height: 100vh;
-                overflow: hidden;
+                height: 80vh;
             }
         </style>
         <script type="text/javascript">
             var panorama;
             document.addEventListener("DOMContentLoaded", function(event){
                 panorama = threePanorama({
-                    // container: "#the-body",
+                    container: "#container",
                     useWindowSize: false,
                     image: "images/Forest-Day_Left.jpg"
                 });
@@ -28,7 +31,9 @@
 
         </script>
     </head>
-    <body id="the-body">
+    <body>
+        <div id="container">
 
+        </div>
     </body>
 </html>

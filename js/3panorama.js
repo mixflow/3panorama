@@ -11,7 +11,7 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, toggleTargetFullscreen, update, updateCamera, val, width;
+    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, toggleTargetFullscreen, update, updateCamera, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -171,8 +171,23 @@
       target.addEventListener("touchmove", touchMoveHandle, false);
       return target.addEventListener("touchend", touchEndHandle, false);
     };
+    getFullscreenElementHelper = function(container) {
+      if (container == null) {
+        container = document;
+      }
+      return function() {
+        return container.fullscreenElement || container.webkitFullscreenElement || container.mozFullScreenElement || container.msFullscreenElement;
+      };
+    };
+    getFullscreenElement = getFullscreenElementHelper();
     toggleTargetFullscreen = function(target) {
-      if (document.fullscreenElement || document.mozRequestFullScreen || document.webkitFullscreenElement || document.msFullscreenElement) {
+
+      /*
+          If no fullscreen element, the `target` enters fullscree.
+          Otherwise fullscreen element exit fullscreen.
+          Both trigge the `fullscreenchange` event.
+       */
+      if (getFullscreenElement()) {
         if (document.exitFullscreen) {
           return document.exitFullscreen();
         } else if (document.msExitFullscreen) {
@@ -199,22 +214,27 @@
       }
     };
     changeFullscreenState = function(target) {
+
+      /*
+          the actual behavior when fullscreen state is changed.
+       */
       var clazz, fullscreenElement;
-      fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+      fullscreenElement = getFullscreenElement();
       clazz = "fullscreen-mode";
       if ((fullscreenElement != null)) {
         target.className += " " + clazz;
         target.style.width = "100vw";
         target.style.height = "100vh";
         target.style["max-width"] = "unset";
-        return target.style["max-height"] = "unset";
+        target.style["max-height"] = "unset";
       } else {
         target.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
         target.style.width = null;
         target.style.height = null;
         target.style["max-width"] = null;
-        return target.style["max-height"] = null;
+        target.style["max-height"] = null;
       }
+      return onWindowResize();
     };
     initControls = function(container) {
       var controls, fullscreen;

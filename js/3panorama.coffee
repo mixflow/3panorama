@@ -196,8 +196,25 @@ window.threePanorama = (settings) ->
         target.addEventListener "touchmove", touchMoveHandle, false
         target.addEventListener "touchend", touchEndHandle, false
 
+    getFullscreenElementHelper = (container) ->
+        if not container?
+            container = document
+        return ->
+            container.fullscreenElement or
+            container.webkitFullscreenElement or
+            container.mozFullScreenElement or
+            container.msFullscreenElement
+
+    getFullscreenElement = getFullscreenElementHelper()
+
+
     toggleTargetFullscreen = (target) ->
-        if document.fullscreenElement or document.mozRequestFullScreen or document.webkitFullscreenElement or document.msFullscreenElement
+        ###
+            If no fullscreen element, the `target` enters fullscree.
+            Otherwise fullscreen element exit fullscreen.
+            Both trigge the `fullscreenchange` event.
+        ###
+        if getFullscreenElement()
             # fullscreen state. to exit fullscreen
             if document.exitFullscreen
                 document.exitFullscreen()
@@ -223,11 +240,11 @@ window.threePanorama = (settings) ->
                 console.log("The bowser doesn't support fullscreen mode")
 
     changeFullscreenState = (target) ->
+        ###
+            the actual behavior when fullscreen state is changed.
+        ###
         # TODO [important] make a wrapper for styling??
-        fullscreenElement = document.fullscreenElement ||
-            document.mozFullScreenElement ||
-            document.webkitFullscreenElement ||
-            document.msFullscreenElement
+        fullscreenElement = getFullscreenElement()
 
         clazz = "fullscreen-mode"
 
@@ -247,6 +264,9 @@ window.threePanorama = (settings) ->
             target.style.height = null
             target.style["max-width"] = null
             target.style["max-height"] = null
+
+        # reset 3panorama camera and renderer(cavans) size
+        onWindowResize()
 
 
     initControls = (container) ->
