@@ -207,37 +207,78 @@ window.threePanorama = (settings) ->
 
     getFullscreenElement = getFullscreenElementHelper()
 
+    requestAndExitFullscreenHelper = ->
+        ###
+            The helper function to create the `exitFullscreen` and `requestFullscreen`
+            callback function.
+            There is no need for checking different broswer methods when
+            the fullscreen is toggled every time.
 
-    toggleTargetFullscreen = (target) ->
         ###
-            If no fullscreen element, the `target` enters fullscree.
-            Otherwise fullscreen element exit fullscreen.
-            Both trigge the `fullscreenchange` event.
-        ###
-        if getFullscreenElement()
-            # fullscreen state. to exit fullscreen
-            if document.exitFullscreen
-                document.exitFullscreen()
-            else if document.msExitFullscreen
-                document.msExitFullscreen();
-            else if document.mozCancelFullScreen
-                document.mozCancelFullScreen()
-            else if document.webkitExitFullscreen
-                document.webkitExitFullscreen()
-            else
-                console.log("The bowser doesn't support fullscreen mode") # Don't support fullscreen
+
+        if document.exitFullscreen
+            ###
+                `exitFn = document.exitFullscreen` not work
+                alternate way: `exitFn = document.exitFullscreen.bind(document)`  (es5)
+            ###
+            exitFn = -> document.exitFullscreen()
+            requestFn = (target) -> target.requestFullscreen()
+
+        else if document.msExitFullscreen
+            exitFn = -> document.msExitFullscreen()
+            requestFn = (target) -> target.msRequestFullscreen()
+
+        else if document.mozCancelFullScreen
+            exitFn = -> document.mozCancelFullScreen()
+            requestFn = (target) -> target.mozRequestFullscreen()
+
+        else if document.webkitExitFullscreen
+            exitFn = -> document.webkitExitFullscreen()
+            requestFn = (target) -> target.webkitRequestFullscreen()
         else
-            # to enter fullscreen
-            if document.documentElement.requestFullscreen
-                target.requestFullscreen()
-            else if document.documentElement.msRequestFullscreen
-                target.msRequestFullscreen()
-            else if document.documentElement.mozRequestFullScreen
-                target.mozRequestFullScreen()
-            else if document.documentElement.webkitRequestFullscreen
-                target.webkitRequestFullscreen()
+            exitFn = ->
+                console.log("The bowser doesn't support fullscreen mode") # Don't support fullscreen
+            requestFn = exitFn
+
+        return {
+            request: requestFn
+            exit: exitFn
+        }
+
+    toggleTargetFullscreen = do ->
+        return (target) ->
+            {request, exit} = requestAndExitFullscreenHelper()
+            ###
+                If no fullscreen element, the `target` enters fullscree.
+                Otherwise fullscreen element exit fullscreen.
+                Both trigge the `fullscreenchange` event.
+            ###
+            if getFullscreenElement()
+                # fullscreen state. to exit fullscreen
+                # if document.exitFullscreen
+                #     document.exitFullscreen()
+                # else if document.msExitFullscreen
+                #     document.msExitFullscreen();
+                # else if document.mozCancelFullScreen
+                #     document.mozCancelFullScreen()
+                # else if document.webkitExitFullscreen
+                #     document.webkitExitFullscreen()
+                # else
+                #     console.log("The bowser doesn't support fullscreen mode") # Don't support fullscreen
+                exit()
             else
-                console.log("The bowser doesn't support fullscreen mode")
+                # to enter fullscreen
+                # if document.documentElement.requestFullscreen
+                #     target.requestFullscreen()
+                # else if document.documentElement.msRequestFullscreen
+                #     target.msRequestFullscreen()
+                # else if document.documentElement.mozRequestFullScreen
+                #     target.mozRequestFullScreen()
+                # else if document.documentElement.webkitRequestFullscreen
+                #     target.webkitRequestFullscreen()
+                # else
+                #     console.log("The bowser doesn't support fullscreen mode")
+                request(target)
 
     changeFullscreenState = (target) ->
         ###

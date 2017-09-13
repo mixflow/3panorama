@@ -11,7 +11,7 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, scene, toggleTargetFullscreen, update, updateCamera, val, width;
+    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -180,39 +180,76 @@
       };
     };
     getFullscreenElement = getFullscreenElementHelper();
-    toggleTargetFullscreen = function(target) {
+    requestAndExitFullscreenHelper = function() {
 
       /*
-          If no fullscreen element, the `target` enters fullscree.
-          Otherwise fullscreen element exit fullscreen.
-          Both trigge the `fullscreenchange` event.
+          The helper function to create the `exitFullscreen` and `requestFullscreen`
+          callback function.
+          There is no need for checking different broswer methods when
+          the fullscreen is toggled every time.
        */
-      if (getFullscreenElement()) {
-        if (document.exitFullscreen) {
+      var exitFn, requestFn;
+      if (document.exitFullscreen) {
+
+        /*
+            `exitFn = document.exitFullscreen` not work
+            alternate way: `exitFn = document.exitFullscreen.bind(document)`  (es5)
+         */
+        exitFn = function() {
           return document.exitFullscreen();
-        } else if (document.msExitFullscreen) {
-          return document.msExitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          return document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-          return document.webkitExitFullscreen();
-        } else {
-          return console.log("The bowser doesn't support fullscreen mode");
-        }
-      } else {
-        if (document.documentElement.requestFullscreen) {
+        };
+        requestFn = function(target) {
           return target.requestFullscreen();
-        } else if (document.documentElement.msRequestFullscreen) {
+        };
+      } else if (document.msExitFullscreen) {
+        exitFn = function() {
+          return document.msExitFullscreen();
+        };
+        requestFn = function(target) {
           return target.msRequestFullscreen();
-        } else if (document.documentElement.mozRequestFullScreen) {
-          return target.mozRequestFullScreen();
-        } else if (document.documentElement.webkitRequestFullscreen) {
+        };
+      } else if (document.mozCancelFullScreen) {
+        exitFn = function() {
+          return document.mozCancelFullScreen();
+        };
+        requestFn = function(target) {
+          return target.mozRequestFullscreen();
+        };
+      } else if (document.webkitExitFullscreen) {
+        exitFn = function() {
+          return document.webkitExitFullscreen();
+        };
+        requestFn = function(target) {
           return target.webkitRequestFullscreen();
-        } else {
+        };
+      } else {
+        exitFn = function() {
           return console.log("The bowser doesn't support fullscreen mode");
-        }
+        };
+        requestFn = exitFn;
       }
+      return {
+        request: requestFn,
+        exit: exitFn
+      };
     };
+    toggleTargetFullscreen = (function() {
+      return function(target) {
+        var exit, ref, request;
+        ref = requestAndExitFullscreenHelper(), request = ref.request, exit = ref.exit;
+
+        /*
+            If no fullscreen element, the `target` enters fullscree.
+            Otherwise fullscreen element exit fullscreen.
+            Both trigge the `fullscreenchange` event.
+         */
+        if (getFullscreenElement()) {
+          return exit();
+        } else {
+          return request(target);
+        }
+      };
+    })();
     changeFullscreenState = function(target) {
 
       /*
