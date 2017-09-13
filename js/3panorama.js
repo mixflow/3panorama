@@ -234,9 +234,9 @@
       };
     };
     toggleTargetFullscreen = (function() {
+      var exit, ref, request;
+      ref = requestAndExitFullscreenHelper(), request = ref.request, exit = ref.exit;
       return function(target) {
-        var exit, ref, request;
-        ref = requestAndExitFullscreenHelper(), request = ref.request, exit = ref.exit;
 
         /*
             If no fullscreen element, the `target` enters fullscree.

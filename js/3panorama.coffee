@@ -246,8 +246,9 @@ window.threePanorama = (settings) ->
         }
 
     toggleTargetFullscreen = do ->
+        {request, exit} = requestAndExitFullscreenHelper()
+
         return (target) ->
-            {request, exit} = requestAndExitFullscreenHelper()
             ###
                 If no fullscreen element, the `target` enters fullscree.
                 Otherwise fullscreen element exit fullscreen.
