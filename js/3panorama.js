@@ -11,7 +11,7 @@
 
 (function() {
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, val, width;
+    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, records, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -23,6 +23,13 @@
           If you want set specific ratio, please set your container size(width / height = ratio) and `useWindowSize` is false
        */
       alternateRatio: 16 / 9,
+
+      /*
+          recommend to set `true`, if you don't set container width and height.
+          Prevent the size of the container and renderer growing when window resizes(fire `onWindowResize` event).
+          Record width and height data, next time the container width is some record again, use the correlative height.
+       */
+      canKeepInitalSize: true,
       enableDragNewImage: true,
       mouseSensitivity: 0.1,
       lonlat: [0, 0],
@@ -31,7 +38,8 @@
       },
       debug: {
         imageLoadProgress: false,
-        lonlat: false
+        lonlat: false,
+        cameraSize: false
       }
     };
     settings = settings || {};
@@ -56,6 +64,7 @@
     lat = settings.lonlat[1];
     width = 0;
     height = 0;
+    records = {};
     getViewerSize = function() {
       var rect;
       if (!settings.useWindowSize) {
@@ -64,6 +73,7 @@
         height = rect.height;
       } else {
         width = window.innerWidth;
+        height = window.innerHeight;
       }
       if (!width && !height) {
         throw {
@@ -74,6 +84,16 @@
         height = width / settings.alternateRatio;
       } else if (!width) {
         width = height * settings.alternateRatio;
+      }
+      if (settings.canKeepInitalSize === true) {
+        if (!(width in records)) {
+          records[width] = height;
+        } else {
+          height = records[width];
+        }
+      }
+      if (settings.debug.cameraSize) {
+        console.log("current camera size:", width, height);
       }
       return {
         width: width,

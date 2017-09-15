@@ -19,7 +19,14 @@ window.threePanorama = (settings) ->
             If you want set specific ratio, please set your container size(width / height = ratio) and `useWindowSize` is false
         ###
         alternateRatio: 16/9
+        ###
+            recommend to set `true`, if you don't set container width and height.
+            Prevent the size of the container and renderer growing when window resizes(fire `onWindowResize` event).
+            Record width and height data, next time the container width is some record again, use the correlative height.
+        ###
+        canKeepInitalSize: true
         enableDragNewImage: true  # can drag image file which will be show as the new panorama to viewer(container)
+
         mouseSensitivity: 0.1 # the sensitivity of mouse when is drag to control the camera.
         lonlat: [0, 0] # the initialize position that camera look at.
         sphere: # Default value works well. changing is not necessary.
@@ -27,6 +34,7 @@ window.threePanorama = (settings) ->
         debug:
             imageLoadProgress: false # !! not work for now!!
             lonlat: false # output the lon and lat positions. when user is controling.
+            cameraSize: false # output camera size when it is changed.
 
     settings = settings || {}
     # put default setting into settings.
@@ -55,13 +63,16 @@ window.threePanorama = (settings) ->
     height = 0
 
     #  size of render
+    records = {} # the camera size records
     getViewerSize = ->
         if not settings.useWindowSize
             rect = container.getBoundingClientRect()
             width = rect.width
             height = rect.height
         else
+            # use the browser window size
             width = window.innerWidth
+            height = window.innerHeight
 
         if not width and not height
             throw {
@@ -73,6 +84,17 @@ window.threePanorama = (settings) ->
             height = width / settings.alternateRatio
         else if not width # height is not zero
             width = height * settings.alternateRatio
+
+        if settings.canKeepInitalSize is true
+            if width not of records
+                # record width height, may use later
+                records[width] = height
+            else
+                # get older data
+                height = records[width]
+
+        if settings.debug.cameraSize
+            console.log("current camera size:", width, height)
 
         return {width, height}
 
