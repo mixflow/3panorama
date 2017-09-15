@@ -64,7 +64,7 @@ window.threePanorama = (settings) ->
 
     #  size of render
     records = {} # the camera size records
-    getViewerSize = ->
+    getViewerSize = (canKeepInitalSize = settings.canKeepInitalSize)->
         if not settings.canUseWindowSize
             rect = container.getBoundingClientRect()
             width = rect.width
@@ -85,7 +85,7 @@ window.threePanorama = (settings) ->
         else if not width # height is not zero
             width = height * settings.alternateRatio
 
-        if settings.canKeepInitalSize is true
+        if canKeepInitalSize is true
             if width not of records
                 # record width height, may use later
                 records[width] = height
