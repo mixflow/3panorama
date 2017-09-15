@@ -101,6 +101,38 @@ window.threePanorama = (settings) ->
     # get init size
     getViewerSize()
 
+    util = do ->
+
+        handler =
+            addClass: (domel, clazz) ->
+                domel.className += " " + clazz
+            removeClass: (domel, clazz) ->
+                domel.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
+
+            on: (domel, event, callback, useCapture=false) ->
+                evts = event.split(" ")
+                domel.addEventListener(evt, callback, useCapture) for evt in evts
+
+        wrapperHelper = {}
+        WrapMethodGenerator = (fn) ->
+            return (el, self) ->
+                return (args...) ->
+                    result = fn(el, args...)
+                    if self? then return self else return result
+
+        for method, fn of handler
+            wrapperHelper[method] = WrapMethodGenerator(fn)
+
+        return (el)->
+            #
+            if el?
+                wrapper = {}
+                wrapper[method] = thunk(el, wrapper) for method, thunk of wrapperHelper
+                wrapper.domel = el
+                return wrapper
+            else
+                return handler
+
     ###
     # Initiate the three.js components.
     # Steps:
@@ -344,6 +376,7 @@ window.threePanorama = (settings) ->
         controls.style.height = "3.5em"
         controls.style["min-height"] = "32px"
 
+        # fullscreen button
         fullscreen = document.createElement("img")
         fullscreen.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzMjAgMzIwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CjxnIGlkPSJYTUxJRF8xMDVfIj4KCTxnPgoJCTxnPgoJCQk8cG9seWdvbiBwb2ludHM9IjEyNS4wMDcsMTgwLjg0OSAyMCwyODUuODU3IDIwLDIwMy40MDEgMCwyMDMuNDAxIDAsMzIwIDExNi41OTksMzIwIDExNi41OTksMzAwIDM0LjE0MiwzMDAgMTM5LjE1LDE5NC45OTIgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMDMuNDAxLDAgMjAzLjQwMSwyMCAyODUuODU1LDIwIDE4MC44NSwxMjUuMDA1IDE5NC45OTMsMTM5LjE0OCAzMDAsMzQuMTQgMzAwLDExNi41OTkgMzIwLDExNi41OTkgMzIwLDAgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMCwzNC4xNDIgMTI1LjAwNiwxMzkuMTQ4IDEzOS4xNDksMTI1LjAwNiAzNC4xNDMsMjAgMTE2LjU5OSwyMCAxMTYuNTk5LDAgMCwwIDAsMTE2LjU5OSAyMCwxMTYuNTk5ICAgICIgZmlsbD0iI0ZGRkZGRiIvPgoJCQk8cG9seWdvbiBwb2ludHM9IjMwMCwyODUuODU1IDE5NC45OTQsMTgwLjg0OSAxODAuODUxLDE5NC45OTEgMjg1Ljg2LDMwMCAyMDMuNDAxLDMwMCAyMDMuNDAxLDMyMCAzMjAsMzIwIDMyMCwyMDMuNDAxICAgICAgMzAwLDIwMy40MDEgICAgIiBmaWxsPSIjRkZGRkZGIi8+CgkJPC9nPgoJPC9nPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo="
         fullscreen.style.margin = "0.3em"
@@ -355,19 +388,22 @@ window.threePanorama = (settings) ->
                 toggleTargetFullscreen(container)
             , false)
 
+        util(document).on "webkitfullscreenchange mozfullscreenchange fullscreenchange msfullscreenchange",
+            -> changeFullscreenState(container)
+
         # TODO CLEAN UP
-        document.addEventListener("webkitfullscreenchange", ->
-                changeFullscreenState(container)
-            , false)
-        document.addEventListener("mozfullscreenchange ", ->
-                changeFullscreenState(container)
-            , false)
-        document.addEventListener("msfullscreenchange ", ->
-                changeFullscreenState(container)
-            , false)
-        document.addEventListener("fullscreenchange ", ->
-                changeFullscreenState(container)
-            , false)
+        # document.addEventListener("webkitfullscreenchange", ->
+        #         changeFullscreenState(container)
+        #     , false)
+        # document.addEventListener("mozfullscreenchange ", ->
+        #         changeFullscreenState(container)
+        #     , false)
+        # document.addEventListener("msfullscreenchange ", ->
+        #         changeFullscreenState(container)
+        #     , false)
+        # document.addEventListener("fullscreenchange ", ->
+        #         changeFullscreenState(container)
+        #     , false)
 
         controls.appendChild(fullscreen)
 
@@ -419,4 +455,4 @@ window.threePanorama = (settings) ->
     debugSettings = settings.debug
     return {
         container,
-        camera, mesh, scene, renderer, debugSettings}
+        camera, mesh, scene, renderer, debugSettings, util}

@@ -10,8 +10,10 @@
  */
 
 (function() {
+  var slice = [].slice;
+
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, records, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, val, width;
+    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, records, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, util, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -101,6 +103,63 @@
       };
     };
     getViewerSize();
+    util = (function() {
+      var WrapMethodGenerator, fn, handler, method, wrapperHelper;
+      handler = {
+        addClass: function(domel, clazz) {
+          return domel.className += " " + clazz;
+        },
+        removeClass: function(domel, clazz) {
+          return domel.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
+        },
+        on: function(domel, event, callback, useCapture) {
+          var evt, evts, i, len, results;
+          if (useCapture == null) {
+            useCapture = false;
+          }
+          evts = event.split(" ");
+          results = [];
+          for (i = 0, len = evts.length; i < len; i++) {
+            evt = evts[i];
+            results.push(domel.addEventListener(evt, callback, useCapture));
+          }
+          return results;
+        }
+      };
+      wrapperHelper = {};
+      WrapMethodGenerator = function(fn) {
+        return function(el, self) {
+          return function() {
+            var args, result;
+            args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+            result = fn.apply(null, [el].concat(slice.call(args)));
+            if (self != null) {
+              return self;
+            } else {
+              return result;
+            }
+          };
+        };
+      };
+      for (method in handler) {
+        fn = handler[method];
+        wrapperHelper[method] = WrapMethodGenerator(fn);
+      }
+      return function(el) {
+        var thunk, wrapper;
+        if (el != null) {
+          wrapper = {};
+          for (method in wrapperHelper) {
+            thunk = wrapperHelper[method];
+            wrapper[method] = thunk(el, wrapper);
+          }
+          wrapper.domel = el;
+          return wrapper;
+        } else {
+          return handler;
+        }
+      };
+    })();
 
     /*
      * Initiate the three.js components.
@@ -310,18 +369,9 @@
       fullscreen.addEventListener("click", function() {
         return toggleTargetFullscreen(container);
       }, false);
-      document.addEventListener("webkitfullscreenchange", function() {
+      util(document).on("webkitfullscreenchange mozfullscreenchange fullscreenchange msfullscreenchange", function() {
         return changeFullscreenState(container);
-      }, false);
-      document.addEventListener("mozfullscreenchange ", function() {
-        return changeFullscreenState(container);
-      }, false);
-      document.addEventListener("msfullscreenchange ", function() {
-        return changeFullscreenState(container);
-      }, false);
-      document.addEventListener("fullscreenchange ", function() {
-        return changeFullscreenState(container);
-      }, false);
+      });
       controls.appendChild(fullscreen);
       return container.appendChild(controls);
     };
@@ -359,7 +409,8 @@
       mesh: mesh,
       scene: scene,
       renderer: renderer,
-      debugSettings: debugSettings
+      debugSettings: debugSettings,
+      util: util
     };
   };
 
