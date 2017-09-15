@@ -13,10 +13,10 @@ window.threePanorama = (settings) ->
         container: document.body
         image: undefined
         fov: 65  # camera fov(field of view)
-        useWindowSize: false # If set false(defalut), Camera ratio and render size (Viewer size) are base on container size(fill). If set true, use window innerWidth and innerHeight.
+        canUseWindowSize: false # If set false(defalut), Camera ratio and render size (Viewer size) are base on container size(fill). If set true, use window innerWidth and innerHeight.
         ###
             If width or height is missing(0), use this alternate ratio to calculate the missing size.
-            If you want set specific ratio, please set your container size(width / height = ratio) and `useWindowSize` is false
+            If you want set specific ratio, please set your container size(width / height = ratio) and `canUseWindowSize` is false
         ###
         alternateRatio: 16/9
         ###
@@ -25,7 +25,7 @@ window.threePanorama = (settings) ->
             Record width and height data, next time the container width is some record again, use the correlative height.
         ###
         canKeepInitalSize: true
-        enableDragNewImage: true  # can drag image file which will be show as the new panorama to viewer(container)
+        enableDragNewImage: true  # TODO [Not implemented] can drag image file which will be show as the new panorama to viewer(container)
 
         mouseSensitivity: 0.1 # the sensitivity of mouse when is drag to control the camera.
         lonlat: [0, 0] # the initialize position that camera look at.
@@ -65,7 +65,7 @@ window.threePanorama = (settings) ->
     #  size of render
     records = {} # the camera size records
     getViewerSize = ->
-        if not settings.useWindowSize
+        if not settings.canUseWindowSize
             rect = container.getBoundingClientRect()
             width = rect.width
             height = rect.height
@@ -78,7 +78,7 @@ window.threePanorama = (settings) ->
             throw {
                 type: "Lack of Viewer Size.",
                 msg: "Viewer width and height are both missing(value is 0), Please check the container size(width and height > 0).
-                    Or use window size to set Viewer size by setting `useWindowSize` as `true`"
+                    Or use window size to set Viewer size by setting `canUseWindowSize` as `true`"
             }
         else if not height
             height = width / settings.alternateRatio

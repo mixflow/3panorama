@@ -16,11 +16,11 @@
       container: document.body,
       image: void 0,
       fov: 65,
-      useWindowSize: false,
+      canUseWindowSize: false,
 
       /*
           If width or height is missing(0), use this alternate ratio to calculate the missing size.
-          If you want set specific ratio, please set your container size(width / height = ratio) and `useWindowSize` is false
+          If you want set specific ratio, please set your container size(width / height = ratio) and `canUseWindowSize` is false
        */
       alternateRatio: 16 / 9,
 
@@ -67,7 +67,7 @@
     records = {};
     getViewerSize = function() {
       var rect;
-      if (!settings.useWindowSize) {
+      if (!settings.canUseWindowSize) {
         rect = container.getBoundingClientRect();
         width = rect.width;
         height = rect.height;
@@ -78,7 +78,7 @@
       if (!width && !height) {
         throw {
           type: "Lack of Viewer Size.",
-          msg: "Viewer width and height are both missing(value is 0), Please check the container size(width and height > 0). Or use window size to set Viewer size by setting `useWindowSize` as `true`"
+          msg: "Viewer width and height are both missing(value is 0), Please check the container size(width and height > 0). Or use window size to set Viewer size by setting `canUseWindowSize` as `true`"
         };
       } else if (!height) {
         height = width / settings.alternateRatio;
