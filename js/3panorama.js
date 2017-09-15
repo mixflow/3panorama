@@ -67,8 +67,11 @@
     width = 0;
     height = 0;
     records = {};
-    getViewerSize = function() {
+    getViewerSize = function(canKeepInitalSize) {
       var rect;
+      if (canKeepInitalSize == null) {
+        canKeepInitalSize = settings.canKeepInitalSize;
+      }
       if (!settings.canUseWindowSize) {
         rect = container.getBoundingClientRect();
         width = rect.width;
@@ -87,7 +90,7 @@
       } else if (!width) {
         width = height * settings.alternateRatio;
       }
-      if (settings.canKeepInitalSize === true) {
+      if (canKeepInitalSize === true) {
         if (!(width in records)) {
           records[width] = height;
         } else {
@@ -110,7 +113,7 @@
           return domel.className += " " + clazz;
         },
         removeClass: function(domel, clazz) {
-          return domel.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
+          return domel.className = domel.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
         },
         on: function(domel, event, callback, useCapture) {
           var evt, evts, i, len, results;
@@ -187,7 +190,7 @@
       container.appendChild(renderer.domElement);
       bindMouseTouchControl(renderer.domElement);
       initControls(container);
-      window.addEventListener("resize", onWindowResize, false);
+      util(window).on("resize", onWindowResize, false);
       return {
         camera: camera,
         mesh: mesh,
@@ -203,7 +206,7 @@
       return renderer;
     };
     bindMouseTouchControl = function(target) {
-      var controlEnd, controlMoveHelper, controlStartHelper, controlStartLat, controlStartLon, controlStartX, controlStartY, isUserControling, mouseDownHandle, mouseMoveHandle, mouseUpHandle, touchEndHandle, touchMoveHandle, touchStartHandle;
+      var controlEnd, controlMoveHelper, controlStartHelper, controlStartLat, controlStartLon, controlStartX, controlStartY, isUserControling, mouseDownHandle, mouseMoveHandle, mouseUpHandle, targetUtil, touchEndHandle, touchMoveHandle, touchStartHandle;
       controlStartX = 0;
       controlStartY = 0;
       controlStartLon = 0;
@@ -240,15 +243,12 @@
       mouseDownHandle = controlStartHelper(false);
       mouseMoveHandle = controlMoveHelper(false);
       mouseUpHandle = controlEnd;
-      target.addEventListener('mousedown', mouseDownHandle, false);
-      target.addEventListener('mousemove', mouseMoveHandle, false);
-      target.addEventListener('mouseup', mouseUpHandle, false);
+      targetUtil = util(target);
+      targetUtil.on('mousedown', mouseDownHandle, false).on('mousemove', mouseMoveHandle, false).on('mouseup', mouseUpHandle, false);
       touchStartHandle = controlStartHelper(true);
       touchMoveHandle = controlMoveHelper(true);
       touchEndHandle = controlEnd;
-      target.addEventListener("touchstart", touchStartHandle, false);
-      target.addEventListener("touchmove", touchMoveHandle, false);
-      return target.addEventListener("touchend", touchEndHandle, false);
+      return targetUtil.on("touchstart", touchStartHandle, false).on("touchmove", touchMoveHandle, false).on("touchend", touchEndHandle, false);
     };
     getFullscreenElementHelper = function(container) {
       if (container == null) {
@@ -334,17 +334,18 @@
       /*
           the actual behavior when fullscreen state is changed.
        */
-      var clazz, fullscreenElement;
+      var clazz, fullscreenElement, targetUtil;
       fullscreenElement = getFullscreenElement();
       clazz = "fullscreen-mode";
+      targetUtil = util(target);
       if ((fullscreenElement != null)) {
-        target.className += " " + clazz;
+        targetUtil.addClass(clazz);
         target.style.width = "100vw";
         target.style.height = "100vh";
         target.style["max-width"] = "unset";
         target.style["max-height"] = "unset";
       } else {
-        target.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
+        targetUtil.removeClass(clazz);
         target.style.width = null;
         target.style.height = null;
         target.style["max-width"] = null;
@@ -353,7 +354,7 @@
       return onWindowResize();
     };
     initControls = function(container) {
-      var controls, fullscreen;
+      var controls, fullscreen, fullscreenUtil;
       controls = document.createElement("div");
       controls.className = "3panorama-controls";
       controls.style.position = "absolute";
@@ -362,11 +363,12 @@
       controls.style.height = "3.5em";
       controls.style["min-height"] = "32px";
       fullscreen = document.createElement("img");
+      fullscreenUtil = util(fullscreen);
       fullscreen.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzMjAgMzIwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CjxnIGlkPSJYTUxJRF8xMDVfIj4KCTxnPgoJCTxnPgoJCQk8cG9seWdvbiBwb2ludHM9IjEyNS4wMDcsMTgwLjg0OSAyMCwyODUuODU3IDIwLDIwMy40MDEgMCwyMDMuNDAxIDAsMzIwIDExNi41OTksMzIwIDExNi41OTksMzAwIDM0LjE0MiwzMDAgMTM5LjE1LDE5NC45OTIgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMDMuNDAxLDAgMjAzLjQwMSwyMCAyODUuODU1LDIwIDE4MC44NSwxMjUuMDA1IDE5NC45OTMsMTM5LjE0OCAzMDAsMzQuMTQgMzAwLDExNi41OTkgMzIwLDExNi41OTkgMzIwLDAgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMCwzNC4xNDIgMTI1LjAwNiwxMzkuMTQ4IDEzOS4xNDksMTI1LjAwNiAzNC4xNDMsMjAgMTE2LjU5OSwyMCAxMTYuNTk5LDAgMCwwIDAsMTE2LjU5OSAyMCwxMTYuNTk5ICAgICIgZmlsbD0iI0ZGRkZGRiIvPgoJCQk8cG9seWdvbiBwb2ludHM9IjMwMCwyODUuODU1IDE5NC45OTQsMTgwLjg0OSAxODAuODUxLDE5NC45OTEgMjg1Ljg2LDMwMCAyMDMuNDAxLDMwMCAyMDMuNDAxLDMyMCAzMjAsMzIwIDMyMCwyMDMuNDAxICAgICAgMzAwLDIwMy40MDEgICAgIiBmaWxsPSIjRkZGRkZGIi8+CgkJPC9nPgoJPC9nPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=";
       fullscreen.style.margin = "0.3em";
       fullscreen.style.height = "75%";
       fullscreen.style["min-height"] = "24px";
-      fullscreen.addEventListener("click", function() {
+      fullscreenUtil.on("click", function() {
         return toggleTargetFullscreen(container);
       }, false);
       util(document).on("webkitfullscreenchange mozfullscreenchange fullscreenchange msfullscreenchange", function() {

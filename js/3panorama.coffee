@@ -107,7 +107,7 @@ window.threePanorama = (settings) ->
             addClass: (domel, clazz) ->
                 domel.className += " " + clazz
             removeClass: (domel, clazz) ->
-                domel.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
+                domel.className = domel.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
 
             on: (domel, event, callback, useCapture=false) ->
                 evts = event.split(" ")
@@ -185,7 +185,7 @@ window.threePanorama = (settings) ->
         initControls(container)
 
         # resize the camera and renderer when window size changed.
-        window.addEventListener("resize", onWindowResize, false)
+        util(window).on("resize", onWindowResize, false)
 
         return {camera, mesh, scene, renderer}
         # [end] init
@@ -237,18 +237,20 @@ window.threePanorama = (settings) ->
         mouseDownHandle = controlStartHelper(false)
         mouseMoveHandle = controlMoveHelper(false)
         mouseUpHandle = controlEnd
+
+        targetUtil = util(target)
         # bind mouse event
-        target.addEventListener 'mousedown', mouseDownHandle, false
-        target.addEventListener 'mousemove', mouseMoveHandle, false
-        target.addEventListener 'mouseup', mouseUpHandle, false
+        targetUtil.on 'mousedown', mouseDownHandle, false
+            .on 'mousemove', mouseMoveHandle, false
+            .on 'mouseup', mouseUpHandle, false
 
         touchStartHandle = controlStartHelper(true)
         touchMoveHandle = controlMoveHelper(true)
         touchEndHandle = controlEnd
         # touch event
-        target.addEventListener "touchstart", touchStartHandle, false
-        target.addEventListener "touchmove", touchMoveHandle, false
-        target.addEventListener "touchend", touchEndHandle, false
+        targetUtil.on "touchstart", touchStartHandle, false
+            .on "touchmove", touchMoveHandle, false
+            .on "touchend", touchEndHandle, false
 
     getFullscreenElementHelper = (container) ->
         if not container?
@@ -343,9 +345,10 @@ window.threePanorama = (settings) ->
         fullscreenElement = getFullscreenElement()
 
         clazz = "fullscreen-mode"
-
+        targetUtil = util(target)
         if (fullscreenElement?) # fullscreen
-            target.className += " " + clazz
+            # target.className += " " + clazz
+            targetUtil.addClass(clazz)
 
             target.style.width = "100vw"
             target.style.height = "100vh"
@@ -354,7 +357,8 @@ window.threePanorama = (settings) ->
         else
             # remove class name
             # TODO clean up. make a helper to handle class name.
-            target.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
+            # target.className = target.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
+            targetUtil.removeClass(clazz)
 
             target.style.width = null
             target.style.height = null
@@ -378,12 +382,13 @@ window.threePanorama = (settings) ->
 
         # fullscreen button
         fullscreen = document.createElement("img")
+        fullscreenUtil = util(fullscreen)
         fullscreen.src = "data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iTGF5ZXJfMSIgeD0iMHB4IiB5PSIwcHgiIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiBzdHlsZT0iZW5hYmxlLWJhY2tncm91bmQ6bmV3IDAgMCAzMjAgMzIwOyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSIgd2lkdGg9IjI0cHgiIGhlaWdodD0iMjRweCI+CjxnIGlkPSJYTUxJRF8xMDVfIj4KCTxnPgoJCTxnPgoJCQk8cG9seWdvbiBwb2ludHM9IjEyNS4wMDcsMTgwLjg0OSAyMCwyODUuODU3IDIwLDIwMy40MDEgMCwyMDMuNDAxIDAsMzIwIDExNi41OTksMzIwIDExNi41OTksMzAwIDM0LjE0MiwzMDAgMTM5LjE1LDE5NC45OTIgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMDMuNDAxLDAgMjAzLjQwMSwyMCAyODUuODU1LDIwIDE4MC44NSwxMjUuMDA1IDE5NC45OTMsMTM5LjE0OCAzMDAsMzQuMTQgMzAwLDExNi41OTkgMzIwLDExNi41OTkgMzIwLDAgICAgICAgICAiIGZpbGw9IiNGRkZGRkYiLz4KCQkJPHBvbHlnb24gcG9pbnRzPSIyMCwzNC4xNDIgMTI1LjAwNiwxMzkuMTQ4IDEzOS4xNDksMTI1LjAwNiAzNC4xNDMsMjAgMTE2LjU5OSwyMCAxMTYuNTk5LDAgMCwwIDAsMTE2LjU5OSAyMCwxMTYuNTk5ICAgICIgZmlsbD0iI0ZGRkZGRiIvPgoJCQk8cG9seWdvbiBwb2ludHM9IjMwMCwyODUuODU1IDE5NC45OTQsMTgwLjg0OSAxODAuODUxLDE5NC45OTEgMjg1Ljg2LDMwMCAyMDMuNDAxLDMwMCAyMDMuNDAxLDMyMCAzMjAsMzIwIDMyMCwyMDMuNDAxICAgICAgMzAwLDIwMy40MDEgICAgIiBmaWxsPSIjRkZGRkZGIi8+CgkJPC9nPgoJPC9nPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo="
         fullscreen.style.margin = "0.3em"
         fullscreen.style.height = "75%"
         fullscreen.style["min-height"] = "24px"
 
-        fullscreen.addEventListener("click",
+        fullscreenUtil.on("click",
             ->
                 toggleTargetFullscreen(container)
             , false)
