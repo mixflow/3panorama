@@ -107,7 +107,7 @@
     };
     getViewerSize();
     util = (function() {
-      var WrapMethodGenerator, fn, handler, method, wrapperHelper;
+      var handler, wrapperGenerator;
       handler = {
         addClass: function(domel, clazz) {
           return domel.className += " " + clazz;
@@ -129,35 +129,29 @@
           return results;
         }
       };
-      wrapperHelper = {};
-      WrapMethodGenerator = function(fn) {
-        return function(el, self) {
+      wrapperGenerator = function(wrapper) {
+        var fn, method, methodHelper;
+        methodHelper = function(fn) {
           return function() {
-            var args, result;
+            var args;
             args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-            result = fn.apply(null, [el].concat(slice.call(args)));
-            if (self != null) {
-              return self;
-            } else {
-              return result;
-            }
+            fn.apply(null, [wrapper.domel].concat(slice.call(args)));
+            return wrapper;
           };
         };
+        for (method in handler) {
+          fn = handler[method];
+          wrapper[method] = methodHelper(fn);
+        }
+        return wrapper;
       };
-      for (method in handler) {
-        fn = handler[method];
-        wrapperHelper[method] = WrapMethodGenerator(fn);
-      }
       return function(el) {
-        var thunk, wrapper;
+        var wrapper;
         if (el != null) {
-          wrapper = {};
-          for (method in wrapperHelper) {
-            thunk = wrapperHelper[method];
-            wrapper[method] = thunk(el, wrapper);
-          }
-          wrapper.domel = el;
-          return wrapper;
+          wrapper = {
+            domel: el
+          };
+          return wrapperGenerator(wrapper);
         } else {
           return handler;
         }

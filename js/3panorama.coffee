@@ -113,23 +113,27 @@ window.threePanorama = (settings) ->
                 evts = event.split(" ")
                 domel.addEventListener(evt, callback, useCapture) for evt in evts
 
-        wrapperHelper = {}
-        WrapMethodGenerator = (fn) ->
-            return (el, self) ->
+        wrapperGenerator = (wrapper)->
+            methodHelper = (fn) ->
+                # avoid create function in the loop
                 return (args...) ->
-                    result = fn(el, args...)
-                    if self? then return self else return result
+                    # the real method of util
+                    fn(wrapper.domel, args...)
+                    wrapper # return wrapper itself to call continually later
 
-        for method, fn of handler
-            wrapperHelper[method] = WrapMethodGenerator(fn)
+            for method, fn of handler
+                # transfer the handler methods to the wrapper methods
+                wrapper[method] = methodHelper(fn)
+
+            wrapper # the generated wrapper
 
         return (el)->
             #
             if el?
-                wrapper = {}
-                wrapper[method] = thunk(el, wrapper) for method, thunk of wrapperHelper
-                wrapper.domel = el
-                return wrapper
+                wrapper =
+                    domel: el # set DOM element
+
+                wrapperGenerator(wrapper)
             else
                 return handler
 
