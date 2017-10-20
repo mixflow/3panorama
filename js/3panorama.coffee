@@ -190,8 +190,15 @@ window.threePanorama = (settings) ->
 
         # resize the camera and renderer when window size changed.
         util(window).on("resize",
-            (evt) ->
-                onWindowResize(evt, false)
+            do ->
+                # prevent fire resize multi times. only need call the function when resize finished
+                resizeTimer = undefined
+                return (event) ->
+                    clearTimeout resizeTimer
+                    resizeTimer = setTimeout(
+                        ->
+                            onWindowResize(event, false)
+                        , 100)
             ,false)
 
         return {camera, mesh, scene, renderer}

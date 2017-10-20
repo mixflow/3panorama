@@ -184,9 +184,16 @@
       container.appendChild(renderer.domElement);
       bindMouseTouchControl(renderer.domElement);
       initControls(container);
-      util(window).on("resize", function(evt) {
-        return onWindowResize(evt, false);
-      }, false);
+      util(window).on("resize", (function() {
+        var resizeTimer;
+        resizeTimer = void 0;
+        return function(event) {
+          clearTimeout(resizeTimer);
+          return resizeTimer = setTimeout(function() {
+            return onWindowResize(event, false);
+          }, 100);
+        };
+      })(), false);
       return {
         camera: camera,
         mesh: mesh,
