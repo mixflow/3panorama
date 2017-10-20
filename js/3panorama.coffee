@@ -315,30 +315,12 @@ window.threePanorama = (settings) ->
                 Both trigge the `fullscreenchange` event.
             ###
             if getFullscreenElement()
-                # fullscreen state. to exit fullscreen
-                # if document.exitFullscreen
-                #     document.exitFullscreen()
-                # else if document.msExitFullscreen
-                #     document.msExitFullscreen();
-                # else if document.mozCancelFullScreen
-                #     document.mozCancelFullScreen()
-                # else if document.webkitExitFullscreen
-                #     document.webkitExitFullscreen()
-                # else
-                #     console.log("The bowser doesn't support fullscreen mode") # Don't support fullscreen
+                # Before fullscreen state, exit fullscreen now.
+                # call the `exit` helper function
                 exit()
             else
-                # to enter fullscreen
-                # if document.documentElement.requestFullscreen
-                #     target.requestFullscreen()
-                # else if document.documentElement.msRequestFullscreen
-                #     target.msRequestFullscreen()
-                # else if document.documentElement.mozRequestFullScreen
-                #     target.mozRequestFullScreen()
-                # else if document.documentElement.webkitRequestFullscreen
-                #     target.webkitRequestFullscreen()
-                # else
-                #     console.log("The bowser doesn't support fullscreen mode")
+                # enter fullscreen now.
+                # the `request` helper function which requests the fullscreen.
                 request(target)
 
     changeFullscreenState = (target) ->
@@ -399,20 +381,6 @@ window.threePanorama = (settings) ->
 
         util(document).on "webkitfullscreenchange mozfullscreenchange fullscreenchange msfullscreenchange",
             -> changeFullscreenState(container)
-
-        # TODO CLEAN UP
-        # document.addEventListener("webkitfullscreenchange", ->
-        #         changeFullscreenState(container)
-        #     , false)
-        # document.addEventListener("mozfullscreenchange ", ->
-        #         changeFullscreenState(container)
-        #     , false)
-        # document.addEventListener("msfullscreenchange ", ->
-        #         changeFullscreenState(container)
-        #     , false)
-        # document.addEventListener("fullscreenchange ", ->
-        #         changeFullscreenState(container)
-        #     , false)
 
         controls.appendChild(fullscreen)
 
