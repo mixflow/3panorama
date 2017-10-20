@@ -8,7 +8,7 @@ _3panorama_ 是一个基于[Three.js](https://threejs.org/) 使用javascript编�
 它可以加载等距长方投影映射 图片，并通过全景图的方式展示。你可以通过鼠标、触摸、设备转向来观看四周。
 
 ## DEMO 示例
-[3panorama.github.io](3panorama.github.io)
+[www.mix-flow.com/3panorama/](http://www.mix-flow.com/3panorama/)
 
 The forest panorama is a UE4(unreal engine 4, a game engine) work that I created. \
 This _3panorama_ library is make. So I'm able to show my 3D and game work in the panoramic viewer.
