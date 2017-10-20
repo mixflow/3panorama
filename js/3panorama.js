@@ -184,7 +184,9 @@
       container.appendChild(renderer.domElement);
       bindMouseTouchControl(renderer.domElement);
       initControls(container);
-      util(window).on("resize", onWindowResize, false);
+      util(window).on("resize", function(evt) {
+        return onWindowResize(evt, false);
+      }, false);
       return {
         camera: camera,
         mesh: mesh,
@@ -337,15 +339,14 @@
         target.style.width = "100vw";
         target.style.height = "100vh";
         target.style["max-width"] = "unset";
-        target.style["max-height"] = "unset";
+        return target.style["max-height"] = "unset";
       } else {
         targetUtil.removeClass(clazz);
         target.style.width = null;
         target.style.height = null;
         target.style["max-width"] = null;
-        target.style["max-height"] = null;
+        return target.style["max-height"] = null;
       }
-      return onWindowResize();
     };
     initControls = function(container) {
       var controls, fullscreen, fullscreenUtil;
@@ -371,8 +372,11 @@
       controls.appendChild(fullscreen);
       return container.appendChild(controls);
     };
-    onWindowResize = function(event) {
-      getViewerSize();
+    onWindowResize = function(event, doesKeepInitSize) {
+      if (doesKeepInitSize == null) {
+        doesKeepInitSize = true;
+      }
+      getViewerSize(doesKeepInitSize);
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
       return renderer.setSize(width, height);

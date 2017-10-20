@@ -189,7 +189,10 @@ window.threePanorama = (settings) ->
         initControls(container)
 
         # resize the camera and renderer when window size changed.
-        util(window).on("resize", onWindowResize, false)
+        util(window).on("resize",
+            (evt) ->
+                onWindowResize(evt, false)
+            ,false)
 
         return {camera, mesh, scene, renderer}
         # [end] init
@@ -351,8 +354,9 @@ window.threePanorama = (settings) ->
             target.style["max-width"] = null
             target.style["max-height"] = null
 
+        # [don't uncomment] enter or exit fullscreen will toggle `resize` event of `window`. no need to call the function to resize again.
         # reset 3panorama camera and renderer(cavans) size
-        onWindowResize()
+        # onWindowResize(undefined, false)
 
 
     initControls = (container) ->
@@ -387,8 +391,8 @@ window.threePanorama = (settings) ->
         container.appendChild(controls)
 
 
-    onWindowResize = (event) ->
-        getViewerSize()
+    onWindowResize = (event, doesKeepInitSize = true) ->
+        getViewerSize(doesKeepInitSize)
         camera.aspect = width / height
         camera.updateProjectionMatrix()
 
