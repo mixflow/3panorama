@@ -13,7 +13,7 @@
   var slice = [].slice;
 
   window.threePanorama = function(settings) {
-    var animate, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, records, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, util, val, width;
+    var animate, bindDeviceOrientation, bindMouseTouchControl, camera, changeFullscreenState, container, debugSettings, defaultSettings, getFullscreenElement, getFullscreenElementHelper, getViewerSize, height, init, initControls, initRenderer, key, lat, lon, mesh, onWindowResize, records, ref, renderer, requestAndExitFullscreenHelper, scene, toggleTargetFullscreen, update, updateCamera, util, val, width;
     defaultSettings = {
       container: document.body,
       image: void 0,
@@ -379,6 +379,41 @@
       controls.appendChild(fullscreen);
       return container.appendChild(controls);
     };
+    bindDeviceOrientation = function() {
+      var eventHandler;
+      eventHandler = (function() {
+
+        /*
+         * https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation
+         * the event values:
+         * alpha: value represents the motion of the device around the z axis, represented in degrees with values ranging from 0 to 360.
+         * beta: value represents the motion of the device around the x axis, represented in degrees with values ranging from -180 to 180. This represents a front to back motion of the device.
+         * gamma: value represents the motion of the device around the y axis, represented in degrees with values ranging from -90 to 90. This represents a left to right motion of the device.
+         */
+        var alphaBefore, betaBefore;
+        alphaBefore = void 0;
+        betaBefore = void 0;
+        return function(event) {
+
+          /*
+              real event handler function. apply device orientation changed to lon and lat.
+           */
+          var alpha, alphaDelta, beta, betaDelta;
+          alpha = event.alpha;
+          beta = event.beta;
+          if (alphaBefore != null) {
+            alphaDelta = alpha - alphaBefore;
+            betaDelta = beta - betaBefore;
+            lon = lon + alphaDelta;
+            lat = lat + betaDelta;
+          }
+          alphaBefore = alpha;
+          return betaBefore = beta;
+        };
+      })();
+      return util().on(window, "deviceorientation", eventHandler, true);
+    };
+    bindDeviceOrientation();
     onWindowResize = function(event, doesKeepInitSize) {
       if (doesKeepInitSize == null) {
         doesKeepInitSize = true;

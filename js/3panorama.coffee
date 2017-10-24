@@ -397,6 +397,39 @@ window.threePanorama = (settings) ->
 
         container.appendChild(controls)
 
+    bindDeviceOrientation = () ->
+        eventHandler = do ->
+            ###
+            # https://developer.mozilla.org/en-US/docs/Web/API/Detecting_device_orientation
+            # the event values:
+            # alpha: value represents the motion of the device around the z axis, represented in degrees with values ranging from 0 to 360.
+            # beta: value represents the motion of the device around the x axis, represented in degrees with values ranging from -180 to 180. This represents a front to back motion of the device.
+            # gamma: value represents the motion of the device around the y axis, represented in degrees with values ranging from -90 to 90. This represents a left to right motion of the device.
+            ###
+            alphaBefore = undefined
+            betaBefore = undefined
+            return (event)->
+                ###
+                    real event handler function. apply device orientation changed to lon and lat.
+                ###
+                alpha = event.alpha
+                beta = event.beta
+                if alphaBefore?
+                    alphaDelta = alpha - alphaBefore
+                    betaDelta = beta - betaBefore
+                    lon = lon + alphaDelta
+                    lat = lat + betaDelta
+
+                # record the orientation data for the next change
+                alphaBefore = alpha
+                betaBefore = beta
+
+        # register `deviceorientation` event
+        util().on(window, "deviceorientation", eventHandler, true)
+
+    # TODO TESTdeviceorientation
+    bindDeviceOrientation()
+
 
     onWindowResize = (event, doesKeepInitSize = true) ->
         getViewerSize(doesKeepInitSize)
