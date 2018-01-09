@@ -415,6 +415,10 @@ window.threePanorama = (settings) ->
                 alpha = event.alpha
                 beta = event.beta
                 if alphaBefore?
+                    ###
+                    alphaDelta(Δalpha) and betaDelta(Δbeta) are the changes of the orientation
+                    which longitude and latitude (lon lat) are applied.
+                    ###
                     alphaDelta = alpha - alphaBefore
                     betaDelta = beta - betaBefore
                     lon = lon + alphaDelta
