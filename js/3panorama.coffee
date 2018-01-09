@@ -27,7 +27,14 @@ window.threePanorama = (settings) ->
         canKeepInitalSize: true
         enableDragNewImage: true  # TODO [Not implemented] can drag image file which will be show as the new panorama to viewer(container)
 
+        # [controls]
+        # mouse
         mouseSensitivity: 0.1 # the sensitivity of mouse when is drag to control the camera.
+
+        # device orientation
+        enableDeviceOrientation: true # when device orientation(if the device has the sensor) is enabled, user turns around device to change the direction that user look at.
+        # [end][controls]
+
         lonlat: [0, 0] # the initialize position that camera look at.
         sphere: # Default value works well. changing is not necessary.
             radius: 500 # the radius of the sphere whose texture is the panorama.
@@ -112,6 +119,10 @@ window.threePanorama = (settings) ->
             on: (domel, event, callback, useCapture=false) ->
                 evts = event.split(" ")
                 domel.addEventListener(evt, callback, useCapture) for evt in evts
+
+            off: (domel, eventsString, callback, useCapture=false) ->
+                evts = eventsString.split(" ")
+                domel.removeEventListener(evt, callback, useCapture) for evt in evts
 
         wrapperGenerator = (wrapper)->
             methodHelper = (fn) ->
@@ -396,6 +407,41 @@ window.threePanorama = (settings) ->
 
         controls.appendChild(fullscreen)
 
+        # device orientation
+        do -> # function scope for short variable that would not affect outside(same name)
+            switchor = document.createElement("div") # the switch to control whether device orientation is on or off.
+            switchorUtil = util(switchor)
+
+            switchor.innerText = "Enable Sensor: "
+
+            switchor.style['display'] = 'inline'
+            switchor.style['color'] = "#FFF"
+            switchor.style['font-size'] = "1em"
+            switchor.style['text-stroke'] = "0.2px #5a9cfc"
+            switchor.style['-webkit-text-stroke'] = "0.2px #5a9cfc"
+
+            status = document.createElement("span")
+            status.innerText = if settings.enableDeviceOrientation then 'On' else 'Off'
+
+            switchor.appendChild(status)
+
+            switchorUtil.on('click',
+                ->
+                    # switch change
+                    settings.enableDeviceOrientation = !settings.enableDeviceOrientation
+
+                    # update the status text
+                    if settings.enableDeviceOrientation
+                        status.innerText = 'On'
+                    else
+                        status.innerText = 'Off'
+
+                , false)  # [end] attach event of device orientation switch
+
+            controls.appendChild(switchor)
+            return switchor
+        # [end] device orientation
+
         container.appendChild(controls)
 
     bindDeviceOrientation = () ->
@@ -413,21 +459,26 @@ window.threePanorama = (settings) ->
                 ###
                     real event handler function. apply device orientation changed to lon and lat.
                 ###
-                alpha = event.alpha
-                beta = event.beta
-                if alphaBefore?
-                    ###
-                    alphaDelta(Δalpha) and betaDelta(Δbeta) are the changes of the orientation
-                    which longitude and latitude (lon lat) are applied.
-                    ###
-                    alphaDelta = alpha - alphaBefore
-                    betaDelta = beta - betaBefore
-                    lon = lon + alphaDelta
-                    lat = lat + betaDelta
+                if settings.enableDeviceOrientation # device orientation enabled
+                    alpha = event.alpha
+                    beta = event.beta
+                    if alphaBefore?
+                        ###
+                        alphaDelta(Δalpha) and betaDelta(Δbeta) are the changes of the orientation
+                        which longitude and latitude (lon lat) are applied.
+                        ###
+                        alphaDelta = alpha - alphaBefore
+                        betaDelta = beta - betaBefore
+                        lon = lon + alphaDelta
+                        lat = lat + betaDelta
 
-                # record the orientation data for the next change
-                alphaBefore = alpha
-                betaBefore = beta
+                    # record the orientation data for the next change
+                    alphaBefore = alpha
+                    betaBefore = beta
+                else # device orientation is NOT enabled
+                    # reset the record of alpha and beta.
+                    alphaBefore = undefined
+                    betaBefore = undefined
 
         # register `deviceorientation` event
         util().on(window, "deviceorientation", eventHandler, true)

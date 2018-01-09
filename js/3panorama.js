@@ -34,6 +34,7 @@
       canKeepInitalSize: true,
       enableDragNewImage: true,
       mouseSensitivity: 0.1,
+      enableDeviceOrientation: true,
       lonlat: [0, 0],
       sphere: {
         radius: 500
@@ -125,6 +126,19 @@
           for (i = 0, len = evts.length; i < len; i++) {
             evt = evts[i];
             results.push(domel.addEventListener(evt, callback, useCapture));
+          }
+          return results;
+        },
+        off: function(domel, eventsString, callback, useCapture) {
+          var evt, evts, i, len, results;
+          if (useCapture == null) {
+            useCapture = false;
+          }
+          evts = eventsString.split(" ");
+          results = [];
+          for (i = 0, len = evts.length; i < len; i++) {
+            evt = evts[i];
+            results.push(domel.removeEventListener(evt, callback, useCapture));
           }
           return results;
         }
@@ -377,6 +391,30 @@
         return changeFullscreenState(container);
       });
       controls.appendChild(fullscreen);
+      (function() {
+        var status, switchor, switchorUtil;
+        switchor = document.createElement("div");
+        switchorUtil = util(switchor);
+        switchor.innerText = "Enable Sensor: ";
+        switchor.style['display'] = 'inline';
+        switchor.style['color'] = "#FFF";
+        switchor.style['font-size'] = "1em";
+        switchor.style['text-stroke'] = "0.2px #5a9cfc";
+        switchor.style['-webkit-text-stroke'] = "0.2px #5a9cfc";
+        status = document.createElement("span");
+        status.innerText = settings.enableDeviceOrientation ? 'On' : 'Off';
+        switchor.appendChild(status);
+        switchorUtil.on('click', function() {
+          settings.enableDeviceOrientation = !settings.enableDeviceOrientation;
+          if (settings.enableDeviceOrientation) {
+            return status.innerText = 'On';
+          } else {
+            return status.innerText = 'Off';
+          }
+        }, false);
+        controls.appendChild(switchor);
+        return switchor;
+      })();
       return container.appendChild(controls);
     };
     bindDeviceOrientation = function() {
@@ -399,21 +437,26 @@
               real event handler function. apply device orientation changed to lon and lat.
            */
           var alpha, alphaDelta, beta, betaDelta;
-          alpha = event.alpha;
-          beta = event.beta;
-          if (alphaBefore != null) {
+          if (settings.enableDeviceOrientation) {
+            alpha = event.alpha;
+            beta = event.beta;
+            if (alphaBefore != null) {
 
-            /*
-            alphaDelta(Δalpha) and betaDelta(Δbeta) are the changes of the orientation
-            which longitude and latitude (lon lat) are applied.
-             */
-            alphaDelta = alpha - alphaBefore;
-            betaDelta = beta - betaBefore;
-            lon = lon + alphaDelta;
-            lat = lat + betaDelta;
+              /*
+              alphaDelta(Δalpha) and betaDelta(Δbeta) are the changes of the orientation
+              which longitude and latitude (lon lat) are applied.
+               */
+              alphaDelta = alpha - alphaBefore;
+              betaDelta = beta - betaBefore;
+              lon = lon + alphaDelta;
+              lat = lat + betaDelta;
+            }
+            alphaBefore = alpha;
+            return betaBefore = beta;
+          } else {
+            alphaBefore = void 0;
+            return betaBefore = void 0;
           }
-          alphaBefore = alpha;
-          return betaBefore = beta;
         };
       })();
       return util().on(window, "deviceorientation", eventHandler, true);
