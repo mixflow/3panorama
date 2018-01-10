@@ -397,7 +397,7 @@ window.threePanorama = (settings) ->
         controls.style.height = "3.5em"
         controls.style["min-height"] = "32px"
 
-        iconStyle = {height: '75%', 'min-height': '24px', margin: '0.3em'}
+        iconStyle = {height: '75%', 'min-height': '24px', padding: '0.3em'}
         # fullscreen button
         fullscreen = document.createElement("img")
         fullscreenUtil = util(fullscreen)
@@ -415,6 +415,42 @@ window.threePanorama = (settings) ->
 
         controls.appendChild(fullscreen)
 
+        # setting button
+        {_, settingPanel} = do ->
+            # settings on the pannel
+            settingPanel = document.createElement('div')
+            panelUtil = util(settingPanel)
+            panelUtil.addClass('3panorama-setting-pannel')
+            panelUtil.css
+                'visibility': 'hidden'
+                display: 'inline'
+                position: 'relative'
+                background: '#FFF'
+                bottom: '100%'
+                left: '-24px'
+                padding: '0.4em 0.8em'
+
+            # setting icon buttion
+            setting = document.createElement("img")
+            setting.src = '../images/setting-icon-opt.svg'
+            settingUtil = util(setting)
+            settingUtil.css(iconStyle)
+            settingUtil.on("click",
+                do ->
+                    now = 'hidden'; after = 'visible'
+                    return ->
+                        panelUtil.css({'visibility': after})
+                        # update state
+                        tmp = now
+                        now = after
+                        after = tmp
+            , false)
+
+            controls.appendChild(setting)
+            controls.appendChild(settingPanel)
+
+            return {setting, settingPanel}
+
         # device orientation
         do -> # function scope for short variable that would not affect outside(same name)
             switchor = document.createElement("div") # the switch to control whether device orientation is on or off.
@@ -422,14 +458,21 @@ window.threePanorama = (settings) ->
 
             switchor.innerText = "Enable Sensor: "
 
-            switchor.style['display'] = 'inline'
-            switchor.style['color'] = "#FFF"
-            switchor.style['font-size'] = "1em"
-            switchor.style['text-stroke'] = "0.2px #5a9cfc"
-            switchor.style['-webkit-text-stroke'] = "0.2px #5a9cfc"
+            switchorUtil.css
+                'display': 'inline'
+                'color': "#000"
+                'font-size': "1em"
+                'font-weight': 'bold'
+                # 'text-stroke': "0.2px #5a9cfc"
+                # '-webkit-text-stroke': "0.2px #5a9cfc"
 
             status = document.createElement("span")
-            status.innerText = if settings.enableDeviceOrientation then 'On' else 'Off'
+            util(status).css {'font-weight': 'normal'}
+
+            on_tag = 'ON'
+            off_tag = 'OFF'
+
+            status.innerText = if settings.enableDeviceOrientation then on_tag else off_tag
 
             switchor.appendChild(status)
 
@@ -440,13 +483,13 @@ window.threePanorama = (settings) ->
 
                     # update the status text
                     if settings.enableDeviceOrientation
-                        status.innerText = 'On'
+                        status.innerText = on_tag
                     else
-                        status.innerText = 'Off'
+                        status.innerText = off_tag
 
                 , false)  # [end] attach event of device orientation switch
 
-            controls.appendChild(switchor)
+            settingPanel.appendChild(switchor)
             return switchor
         # [end] device orientation
 

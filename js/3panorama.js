@@ -116,6 +116,27 @@
         removeClass: function(domel, clazz) {
           return domel.className = domel.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '');
         },
+        getAttribute: function(domel, attr) {
+          return domel.getAttribute(attr);
+        },
+        setAttributes: function(domel, options) {
+          var results;
+          results = [];
+          for (key in options) {
+            val = options[key];
+            results.push(domel.setAttribute(key, val));
+          }
+          return results;
+        },
+        css: function(domel, options) {
+          var property, results, value;
+          results = [];
+          for (property in options) {
+            value = options[property];
+            results.push(domel.style[property] = value);
+          }
+          return results;
+        },
         on: function(domel, event, callback, useCapture) {
           var evt, evts, i, len, results;
           if (useCapture == null) {
@@ -370,7 +391,7 @@
       }
     };
     initControls = function(container) {
-      var controls, fullscreen, fullscreenUtil;
+      var _, controls, fullscreen, fullscreenUtil, iconStyle, ref, settingPanel;
       controls = document.createElement("div");
       controls.className = "3panorama-controls";
       controls.style.position = "absolute";
@@ -378,12 +399,15 @@
       controls.style.width = "100%";
       controls.style.height = "3.5em";
       controls.style["min-height"] = "32px";
+      iconStyle = {
+        height: '75%',
+        'min-height': '24px',
+        padding: '0.3em'
+      };
       fullscreen = document.createElement("img");
       fullscreenUtil = util(fullscreen);
       fullscreen.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiPiAgPHBhdGggZmlsbD0iIzVhOWNmYyIgZD0iTTEyNSAxODAuODVsLTEwNSAxMDVWMjAzLjRIMFYzMjBoMTE2LjZ2LTIwSDM0LjE0bDEwNS4wMS0xMDV6TTIwMy40IDB2MjBoODIuNDZMMTgwLjg1IDEyNWwxNC4xNCAxNC4xNUwzMDAgMzQuMTR2ODIuNDZoMjBWMHoiLz4gIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0yMCAzNC4xNGwxMDUgMTA1IDE0LjE1LTE0LjEzTDM0LjE1IDIwaDgyLjQ1VjBIMHYxMTYuNmgyMHpNMzAwIDI4NS44NkwxOTUgMTgwLjg1bC0xNC4xNSAxNC4xNEwyODUuODYgMzAwSDIwMy40djIwSDMyMFYyMDMuNGgtMjB6Ii8+PC9zdmc+";
-      fullscreen.style.margin = "0.3em";
-      fullscreen.style.height = "75%";
-      fullscreen.style["min-height"] = "24px";
+      fullscreenUtil.css(iconStyle);
       fullscreenUtil.on("click", function() {
         return toggleTargetFullscreen(container);
       }, false);
@@ -391,28 +415,73 @@
         return changeFullscreenState(container);
       });
       controls.appendChild(fullscreen);
+      ref = (function() {
+        var panelUtil, setting, settingPanel, settingUtil;
+        settingPanel = document.createElement('div');
+        panelUtil = util(settingPanel);
+        panelUtil.addClass('3panorama-setting-pannel');
+        panelUtil.css({
+          'visibility': 'hidden',
+          display: 'inline',
+          position: 'relative',
+          background: '#FFF',
+          bottom: '100%',
+          left: '-24px',
+          padding: '0.4em 0.8em'
+        });
+        setting = document.createElement("img");
+        setting.src = '../images/setting-icon-opt.svg';
+        settingUtil = util(setting);
+        settingUtil.css(iconStyle);
+        settingUtil.on("click", (function() {
+          var after, now;
+          now = 'hidden';
+          after = 'visible';
+          return function() {
+            var tmp;
+            panelUtil.css({
+              'visibility': after
+            });
+            tmp = now;
+            now = after;
+            return after = tmp;
+          };
+        })(), false);
+        controls.appendChild(setting);
+        controls.appendChild(settingPanel);
+        return {
+          setting: setting,
+          settingPanel: settingPanel
+        };
+      })(), _ = ref._, settingPanel = ref.settingPanel;
       (function() {
-        var status, switchor, switchorUtil;
+        var off_tag, on_tag, status, switchor, switchorUtil;
         switchor = document.createElement("div");
         switchorUtil = util(switchor);
         switchor.innerText = "Enable Sensor: ";
-        switchor.style['display'] = 'inline';
-        switchor.style['color'] = "#FFF";
-        switchor.style['font-size'] = "1em";
-        switchor.style['text-stroke'] = "0.2px #5a9cfc";
-        switchor.style['-webkit-text-stroke'] = "0.2px #5a9cfc";
+        switchorUtil.css({
+          'display': 'inline',
+          'color': "#000",
+          'font-size': "1em",
+          'font-weight': 'bold'
+        });
         status = document.createElement("span");
-        status.innerText = settings.enableDeviceOrientation ? 'On' : 'Off';
+        util(status).css({
+          'font-weight': 'normal'
+        });
+        on_tag = 'ON';
+        off_tag = 'OFF';
+        status.innerText = settings.enableDeviceOrientation ? on_tag : off_tag;
         switchor.appendChild(status);
         switchorUtil.on('click', function() {
           settings.enableDeviceOrientation = !settings.enableDeviceOrientation;
           if (settings.enableDeviceOrientation) {
-            return status.innerText = 'On';
+            return status.innerText = on_tag;
           } else {
-            return status.innerText = 'Off';
+            return status.innerText = off_tag;
           }
         }, false);
-        controls.appendChild(switchor);
+        settingPanel.appendChild(switchor);
         return switchor;
       })();
       return container.appendChild(controls);
