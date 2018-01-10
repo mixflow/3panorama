@@ -116,6 +116,10 @@ window.threePanorama = (settings) ->
             removeClass: (domel, clazz) ->
                 domel.className = domel.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
 
+            css: (domel, options) ->
+                for property, value of options
+                    domel.style[property] = value
+
             on: (domel, event, callback, useCapture=false) ->
                 evts = event.split(" ")
                 domel.addEventListener(evt, callback, useCapture) for evt in evts
@@ -388,14 +392,13 @@ window.threePanorama = (settings) ->
         controls.style.height = "3.5em"
         controls.style["min-height"] = "32px"
 
+        iconStyle = {height: '75%', 'min-height': '24px', margin: '0.3em'}
         # fullscreen button
         fullscreen = document.createElement("img")
         fullscreenUtil = util(fullscreen)
         # the converted base64 url based on svg file (fullscreen-icon-opt.svg)
         fullscreen.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMjAgMzIwIiB3aWR0aD0iMjQiIGhlaWdodD0iMjQiPiAgPHBhdGggZmlsbD0iIzVhOWNmYyIgZD0iTTEyNSAxODAuODVsLTEwNSAxMDVWMjAzLjRIMFYzMjBoMTE2LjZ2LTIwSDM0LjE0bDEwNS4wMS0xMDV6TTIwMy40IDB2MjBoODIuNDZMMTgwLjg1IDEyNWwxNC4xNCAxNC4xNUwzMDAgMzQuMTR2ODIuNDZoMjBWMHoiLz4gIDxwYXRoIGZpbGw9IiNGRkYiIGQ9Ik0yMCAzNC4xNGwxMDUgMTA1IDE0LjE1LTE0LjEzTDM0LjE1IDIwaDgyLjQ1VjBIMHYxMTYuNmgyMHpNMzAwIDI4NS44NkwxOTUgMTgwLjg1bC0xNC4xNSAxNC4xNEwyODUuODYgMzAwSDIwMy40djIwSDMyMFYyMDMuNGgtMjB6Ii8+PC9zdmc+"
-        fullscreen.style.margin = "0.3em"
-        fullscreen.style.height = "75%"
-        fullscreen.style["min-height"] = "24px"
+        fullscreenUtil.css iconStyle
 
         fullscreenUtil.on("click",
             ->
