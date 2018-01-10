@@ -116,6 +116,11 @@ window.threePanorama = (settings) ->
             removeClass: (domel, clazz) ->
                 domel.className = domel.className.replace(new RegExp('(\\s|^)' + clazz + '(\\s|$)'), '')
 
+            getAttribute: (domel, attr) ->
+                return domel.getAttribute(attr)
+            setAttributes: (domel, options) ->
+                domel.setAttribute(key, val) for key,val of options
+
             css: (domel, options) ->
                 for property, value of options
                     domel.style[property] = value
