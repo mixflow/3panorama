@@ -430,7 +430,7 @@
           padding: '0.4em 0.8em'
         });
         setting = document.createElement("img");
-        setting.src = '../images/setting-icon-opt.svg';
+        setting.src = "data:image/svg+xml;base64,PHN2ZyBiYXNlUHJvZmlsZT0iZnVsbCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+ICA8cGF0aCBkPSJNNDAgODQuNThsNCAxMy4wNGgxMmw0LTEzLjA0YTMwIDMwIDAgMCAwIDE0Ljk1LTguNjNsMTMuMyAzLjA2IDYtMTAuNC05LjMtOS45OGEzMCAzMCAwIDAgMCAwLTE3LjI2bDkuMy05Ljk5LTYtMTAuMzktMTMuMyAzLjA2QTMwIDMwIDAgMCAwIDYwIDE1LjQyTDU2IDIuMzhINDRsLTQgMTMuMDRhMzAgMzAgMCAwIDAtMTQuOTUgOC42M2wtMTMuMy0zLjA2LTYgMTAuNCA5LjMgOS45OGEzMCAzMCAwIDAgMCAwIDE3LjI2bC05LjMgOS45OSA2IDEwLjM5IDEzLjMtMy4wNkEzMCAzMCAwIDAgMCA0MCA4NC41OHpNMzUgNTBhMTUgMTUgMCAxIDEgMzAgMCAxNSAxNSAwIDEgMS0zMCAwIiBmaWxsPSIjZmZmIiBzdHJva2U9IiM1YTljZmMiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg==";
         settingUtil = util(setting);
         settingUtil.css(iconStyle);
         settingUtil.on("click", (function() {
@@ -438,13 +438,11 @@
           now = 'hidden';
           after = 'visible';
           return function() {
-            var tmp;
+            var ref;
             panelUtil.css({
               'visibility': after
             });
-            tmp = now;
-            now = after;
-            return after = tmp;
+            return ref = [after, now], now = ref[0], after = ref[1], ref;
           };
         })(), false);
         controls.appendChild(setting);
