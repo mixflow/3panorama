@@ -1,4 +1,14 @@
 # 3panorama
+**Note: 2019.08.08** --- The project would be **NOT** maintained by the author any more.  
+
+I created another new [panorama viewer project](https://github.com/mixflow/panorama.js) which is recommended by myself.
+
+The new one isn't use three.js anymore, instead built  directly on WebGL(three.js and most js 3d engines use WebGL) and no other JavaScript librarys are required except a little matrix lib(a bunch of matrix operations that are required on low-level).  
+
+Also many other advantages and improvement. check the github link: [https://github.com/mixflow/panorama.js](https://github.com/mixflow/panorama.js)
+
+---
+
 A javascript panorama viewer(360° × 180°) based on [Three.js](https://threejs.org/). It doesn't rely on other javascript libraries except three.js.
 
 It loads equirectangular image and display as panorama. You can control(mouse, touch, device orientation) and look around.
